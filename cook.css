@@ -209,7 +209,33 @@ h1,h2{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-weight:400;lett
 .rcard summary::-webkit-details-marker{display:none}
 .rcard summary::before{content:"＋ ";font-size:12px;font-weight:600}
 .rcard details[open] summary::before{content:"－ "}
-.rcard ol{margin:8px 0 0 16px;font-size:12.5px;color:var(--ink-2);display:grid;gap:5px}
+.rcard ol{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:7px}
+.rcard ol li{display:grid;grid-template-columns:14px 30px 1fr;gap:8px;align-items:start;
+  font-size:12.5px;line-height:1.5;color:var(--ink-2)}
+.rcard ol .n{font-size:10.5px;color:#B9AE99;text-align:right;padding-top:7px}
+.rcard ol .act{width:30px;height:30px;border-radius:9px;background:#F5EFDF;border:1px solid var(--line);
+  display:grid;place-items:center;flex:none}
+.act-art{width:21px;height:21px;overflow:visible}
+/* 每步一个动作：只在展开时轻轻重复，别抢阅读 */
+.rcard details[open] .act-art{animation-duration:2.6s;animation-iteration-count:infinite;animation-timing-function:ease-in-out}
+.rcard details[open] li[data-act="cut"] .act-art{animation-name:actCut}
+.rcard details[open] li[data-act="chop"] .act-art{animation-name:actChop}
+.rcard details[open] li[data-act="mix"] .act-art{animation-name:actMix}
+.rcard details[open] li[data-act="fry"] .act-art{animation-name:actFry}
+.rcard details[open] li[data-act="boil"] .act-art{animation-name:actBoil}
+.rcard details[open] li[data-act="pour"] .act-art{animation-name:actPour}
+.rcard details[open] li[data-act="season"] .act-art{animation-name:actSeason}
+.rcard details[open] li[data-act="cover"] .act-art{animation-name:actCover}
+.rcard details[open] li[data-act="serve"] .act-art{animation-name:actServe}
+@keyframes actCut{0%,70%,100%{transform:rotate(0)}35%{transform:rotate(-16deg) translate(1px,1px)}}
+@keyframes actChop{0%,70%,100%{transform:translateY(0)}35%{transform:translateY(-3px)}}
+@keyframes actMix{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+@keyframes actFry{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg) translateY(-2px)}}
+@keyframes actBoil{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.04)}}
+@keyframes actPour{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(8deg)}}
+@keyframes actSeason{0%,100%{transform:rotate(0)}25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
+@keyframes actCover{0%,100%{transform:translateY(-2px)}50%{transform:translateY(2px)}}
+@keyframes actServe{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 .rcard .cook{margin-top:12px;padding:11px 16px;border-radius:12px;background:var(--sage-dk);
   color:#F6FBF5;font-weight:600;font-size:13.5px;width:100%}
 .rcard .cook:hover{filter:brightness(1.06)}

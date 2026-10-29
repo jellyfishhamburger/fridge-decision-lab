@@ -370,7 +370,14 @@
       // 注意：这里拿到的是 evaluate() 的包裹对象，真正的菜谱在 r.recipe 上
       const steps = (I18N.recipeSteps(r.recipe) || [])
         .filter(s => s && !/^!\[/.test(s.trim()))
-        .map(s => `<li>${s}</li>`).join("");
+        .map((s, i) => {
+          const act = COOK_STEPS.of(s, r.recipe.id + "#" + i);   // 人工校正优先，其次关键词
+          return `<li data-act="${act.id}">
+            <span class="n">${i + 1}</span>
+            <span class="act" title="${I18N.getLang() === "en" ? act.en : act.zh}">${COOK_STEPS.svg(act.id)}</span>
+            <span class="tx">${s}</span>
+          </li>`;
+        }).join("");
       card.innerHTML = `
         <h3>${I18N.recipeName(r.recipe)}</h3>
         <div class="meta">
