@@ -35,7 +35,7 @@
     "cook.mins": "{n} 分钟",
     "cook.kcal": "{n} kcal",
     "cook.uses": "用掉",
-    "cook.needBuy": "要买：{s}",
+    "cook.needBuy": "还差：{s}",
     "cook.needPantry": "柜里也没有：{s}",
     "cook.steps": "看做法",
     "cook.cook": "开始做饭",
@@ -73,7 +73,7 @@
     "cook.mins": "{n} min",
     "cook.kcal": "{n} kcal",
     "cook.uses": "Uses",
-    "cook.needBuy": "To buy: {s}",
+    "cook.needBuy": "Missing: {s}",
     "cook.needPantry": "Not in the cupboard: {s}",
     "cook.steps": "Steps",
     "cook.cook": "Start cooking",
@@ -361,10 +361,15 @@
         : `<span class="gap">${t("cook.gapN", { n: r.missing.length })}</span>`;
       const needs = r.recipe.needs.map(id =>
         `<span>${art(id)}${foodName(id)}</span>`).join("");
-      const buy = FD.shoppingHint(r);
+      // 自己拼缺料，不用 FD.shoppingHint（它已经带「买」字，英文界面也不合适）
+      const buy = r.missing.length
+        ? r.missing.map(id => `${foodName(id)}${FD.byId[id] && FD.byId[id].shop ? "（" + FD.byId[id].shop + "）" : ""}`).join("、")
+        : "";
       const pantry = r.pantryMissing.length
         ? `<p class="meta">${t("cook.needPantry", { s: r.pantryMissing.map(pantryName).join("、") })}</p>` : "";
-      const steps = (I18N.recipeSteps(r) || []).filter(s => !/^!\[/.test(s.trim()))
+      // 注意：这里拿到的是 evaluate() 的包裹对象，真正的菜谱在 r.recipe 上
+      const steps = (I18N.recipeSteps(r.recipe) || [])
+        .filter(s => s && !/^!\[/.test(s.trim()))
         .map(s => `<li>${s}</li>`).join("");
       card.innerHTML = `
         <h3>${I18N.recipeName(r.recipe)}</h3>

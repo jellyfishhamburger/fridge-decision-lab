@@ -96,7 +96,18 @@ async def main(url, outdir):
                 cookDisabled: c.querySelector('.cook')?.disabled
             }));
         })()""")
-        await shot("04-result")
+        # 点「看做法」：必须真的展开出步骤
+        out["steps"] = await js("""(async () => {
+            const card = document.querySelector('#result .rcard');
+            const d = card.querySelector('details');
+            const before = d.open;
+            card.querySelector('summary').click();
+            await new Promise(r => setTimeout(r, 250));
+            const items = [...d.querySelectorAll('ol li')].map(li => li.textContent.slice(0, 22));
+            return {openBefore: before, openAfter: d.open, count: items.length, first: items[0] || null,
+                    height: Math.round(d.getBoundingClientRect().height)};
+        })()""")
+        await shot("04b-steps-open")
 
         # 真正做一道：点第一张可用的卡
         out["cook"] = await js("""(async () => {
