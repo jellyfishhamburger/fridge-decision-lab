@@ -1,0 +1,231 @@
+/* ============================================================
+   cook.css — 「今天的锅」a cookbook-ish skin over the existing app.
+   Palette: cream paper, sage, tomato, butter. Nothing here touches
+   index.html's styles; this file is only loaded by cook.html.
+   ============================================================ */
+:root{
+  --paper:#FBF6EC;
+  --card:#FFFDF8;
+  --ink:#33302A;
+  --ink-2:#6C6558;
+  --line:#E6DCC8;
+  --sage:#7E9C82;
+  --sage-dk:#5F7C64;
+  --sage-bg:#E7EEE4;
+  --tomato:#D4553F;
+  --butter:#F2C14E;
+  --butter-bg:#FBEFD2;
+  --r:18px;
+  --ease:cubic-bezier(.22,.68,0,1);
+  --spring:cubic-bezier(.34,1.56,.64,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font:16px/1.6 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  min-height:100vh;
+  padding-bottom:calc(206px + env(safe-area-inset-bottom));   /* 给底部锅留位 */
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+h1,h2{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-weight:400;letter-spacing:-.01em}
+
+/* ---------- 顶栏 ---------- */
+.top{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;
+  padding:calc(14px + env(safe-area-inset-top)) 18px 14px;
+  background:rgba(251,246,236,.9);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.top h1{font-size:20px;flex:1;text-align:center}
+.back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);text-decoration:none;
+  padding:6px 10px;border-radius:99px;background:var(--card);border:1px solid var(--line)}
+.back:hover{color:var(--ink)}
+.lang{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--sage-dk);
+  padding:7px 12px;border-radius:99px;background:var(--sage-bg);border:1px solid #D3E0CF}
+
+/* ---------- 版式 ---------- */
+.wrap{max-width:1100px;margin:0 auto;padding:22px 18px 40px;
+  display:grid;grid-template-columns:1fr;gap:26px}
+@media (min-width:880px){
+  .wrap{grid-template-columns:minmax(0,1fr) 340px;align-items:start;gap:30px}
+  body{padding-bottom:40px}
+  .fridge-sec{grid-column:1}
+  .pot-sec{grid-column:2;position:sticky;top:82px}
+  .result{grid-column:1/-1}
+}
+.sec-head{margin-bottom:14px}
+.sec-head h2{font-size:19px}
+.lede{font-size:13px;color:var(--ink-2)}
+
+/* ---------- 冰箱 ---------- */
+.fridge{
+  position:relative;max-width:600px;border-radius:calc(var(--r) + 6px);
+  background:linear-gradient(180deg,#FFFDF8,#F6EFE1);
+  border:1px solid var(--line);
+  box-shadow:0 1px 0 #fff inset, 0 14px 30px -22px rgba(51,48,42,.7);
+  padding:16px 16px 22px;
+}
+.fridge-door{position:absolute;inset:6px;border-radius:var(--r);
+  border:1px dashed rgba(126,156,130,.35);pointer-events:none}
+.shelves{position:relative;z-index:1;display:grid;gap:8px;padding-top:14px}
+.shelf{
+  position:relative;display:grid;grid-template-columns:repeat(3,1fr);align-items:end;gap:12px;
+  min-height:104px;padding:10px 4px 12px;
+}
+@media (min-width:880px){ .shelf{grid-template-columns:repeat(4,1fr)} }
+.shelf + .shelf::before{
+  content:"";position:absolute;left:-6px;right:-6px;top:-5px;height:8px;border-radius:4px;
+  background:linear-gradient(180deg,#EBE1CC,#DED2B8);
+  box-shadow:0 1px 0 #fff inset;
+}
+.shelf-label{position:absolute;left:2px;top:-14px;font-size:10px;letter-spacing:.14em;
+  color:#B4A98F;text-transform:uppercase;pointer-events:none}
+
+/* 食材砖 */
+.tile{
+  position:relative;width:100%;padding:9px 5px 8px;border-radius:14px;
+  background:var(--card);border:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  transition:transform .28s var(--ease),box-shadow .28s var(--ease),border-color .2s,background .2s;
+  touch-action:none;
+}
+.tile .art{width:54px;height:54px;display:block;pointer-events:none}
+.tile .nm{font-size:11.5px;line-height:1.2;text-align:center;color:var(--ink);max-width:100%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile .qt{font-size:10px;color:var(--ink-2)}
+.tile .exp{
+  position:absolute;top:6px;left:7px;width:6px;height:6px;border-radius:99px;background:var(--sage);
+}
+.tile[data-urgent="1"] .exp{background:var(--butter)}
+.tile[data-urgent="2"] .exp{background:var(--tomato)}
+.tile:hover{transform:translateY(-3px);box-shadow:0 10px 18px -14px rgba(51,48,42,.8);border-color:#D9CFB9}
+.tile:active{transform:scale(.96)}
+.tile:focus-visible{outline:2px solid var(--sage);outline-offset:2px}
+.tile[aria-pressed="true"]{background:var(--sage-bg);border-color:var(--sage);box-shadow:0 0 0 2px rgba(126,156,130,.25)}
+.tile[aria-pressed="true"]::after{
+  content:"✓";position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:99px;
+  background:var(--sage);color:#fff;font-size:12px;line-height:20px;text-align:center;
+  animation:pop .3s var(--spring);
+}
+.tile.dragging{opacity:.35}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:11.5px;color:#9C927C}
+.legend i{display:inline-block;width:7px;height:7px;border-radius:99px;margin-right:5px;vertical-align:middle}
+.legend .g1{background:var(--sage)}.legend .g2{background:var(--butter)}.legend .g3{background:var(--tomato)}
+
+/* 空状态 */
+.empty{padding:26px 18px;text-align:center;border:1px dashed var(--line);border-radius:var(--r);margin-top:14px}
+.empty p{font-size:14px;color:var(--ink-2);margin-bottom:14px}
+.ghost{padding:11px 20px;border-radius:99px;border:1px solid var(--sage);color:var(--sage-dk);
+  font-weight:600;font-size:14px;background:var(--sage-bg)}
+.ghost:hover{background:#DCE7D8}
+
+/* ---------- 锅 ---------- */
+.pot-sec{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;
+  padding:10px 16px calc(12px + env(safe-area-inset-bottom));
+  background:rgba(255,253,248,.97);border-top:1px solid var(--line);
+  box-shadow:0 -16px 34px -24px rgba(51,48,42,.9);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+@media (min-width:880px){
+  .pot-sec{position:sticky;top:82px;bottom:auto;left:auto;right:auto;
+    padding:18px;border:1px solid var(--line);border-radius:calc(var(--r) + 4px);
+    background:var(--card);box-shadow:0 14px 30px -26px rgba(51,48,42,.8)}
+}
+.pot-sec .sec-head{margin-bottom:8px}
+@media (max-width:879px){
+  .pot-sec .sec-head{display:none}
+  .pot-art{width:82px;height:66px}
+  .pot-sec{padding:8px 14px calc(10px + env(safe-area-inset-bottom))}
+  .primary{margin-top:8px;padding:12px 16px}
+  .tile{width:80px}
+  .tile .art{width:50px;height:50px}
+}
+
+.pot{
+  position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  gap:6px;border-radius:var(--r);transition:box-shadow .3s,background .3s,transform .3s var(--spring);
+  padding:2px 6px 6px;
+}
+.pot-art{width:106px;height:86px;display:block}
+.pot.over{background:var(--butter-bg);box-shadow:0 0 0 3px rgba(242,193,78,.5) inset}
+.pot.bump{animation:bump .42s var(--spring)}
+@keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.06,.94)}70%{transform:scale(.98,1.02)}100%{transform:scale(1)}}
+.steam{opacity:.0;animation:steam 4s ease-in-out infinite}
+.steam.s2{animation-delay:.7s}
+.steam.s3{animation-delay:1.4s}
+.pot.warm .steam{opacity:.9}
+@keyframes steam{0%,100%{transform:translateY(2px);opacity:.25}50%{transform:translateY(-4px);opacity:.8}}
+@media (prefers-reduced-motion:reduce){.steam{animation:none;opacity:.4}}
+
+.chips{list-style:none;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:28px;width:100%}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 6px;border-radius:99px;
+  background:var(--sage-bg);border:1px solid #D3E0CF;font-size:11.5px;color:var(--sage-dk);
+  animation:pop .26s var(--spring)}
+.chip .art{width:20px;height:20px}
+.chip button{width:16px;height:16px;border-radius:99px;background:rgba(95,124,100,.15);
+  font-size:11px;line-height:16px;color:var(--sage-dk)}
+.pot-hint{font-size:11.5px;color:#B4A98F}
+.pot.has .pot-hint{display:none}
+
+.primary{
+  display:block;width:100%;margin-top:10px;padding:14px 18px;border-radius:14px;
+  background:var(--tomato);color:#FFF8F2;font-weight:700;font-size:15px;
+  transition:transform .2s var(--ease),box-shadow .2s,filter .2s;
+  box-shadow:0 10px 20px -14px rgba(212,85,63,.9);
+}
+.primary:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.03)}
+.primary:active:not(:disabled){transform:scale(.985)}
+.primary:disabled{background:#E0D6C0;color:#A2977F;box-shadow:none;cursor:not-allowed}
+.sync{font-size:11px;color:#B4A98F;text-align:center;margin-top:8px;min-height:1em}
+@media (max-width:879px){ .sync{display:none} }
+
+/* ---------- 推荐结果 ---------- */
+.result{display:grid;gap:14px}
+@media (min-width:880px){ .result{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))} }
+
+.rcard{
+  position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:16px 16px 14px;box-shadow:0 12px 26px -24px rgba(51,48,42,.9);
+  animation:rise .5s var(--ease) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.rcard h3{font-family:Georgia,"Songti SC",serif;font-size:19px;line-height:1.25;margin-bottom:4px}
+.rcard .meta{display:flex;flex-wrap:wrap;gap:8px;font-size:11.5px;color:var(--ink-2);margin-bottom:10px}
+.rcard .meta span{background:#F4EDDD;border-radius:99px;padding:2px 8px}
+.rcard .meta span.ok{background:var(--sage-bg);color:var(--sage-dk)}
+.rcard .meta span.gap{background:#FBE3DE;color:#A6412F}
+.use{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
+.use span{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--ink-2);
+  background:#F7F1E4;border:1px solid var(--line);border-radius:99px;padding:2px 8px 2px 4px}
+.use .art{width:18px;height:18px}
+.rcard details{margin:10px 0 4px}
+.rcard summary{font-size:12.5px;color:var(--sage-dk);cursor:pointer;list-style:none}
+.rcard summary::-webkit-details-marker{display:none}
+.rcard summary::before{content:"▸ ";font-size:11px}
+.rcard details[open] summary::before{content:"▾ "}
+.rcard ol{margin:8px 0 0 16px;font-size:12.5px;color:var(--ink-2);display:grid;gap:5px}
+.rcard .cook{margin-top:12px;padding:11px 16px;border-radius:12px;background:var(--sage-dk);
+  color:#F6FBF5;font-weight:600;font-size:13.5px;width:100%}
+.rcard .cook:hover{filter:brightness(1.06)}
+.rcard .cook:disabled{opacity:.5;cursor:not-allowed}
+.rcard.note{animation:none;text-align:center;color:var(--ink-2);font-size:13.5px}
+
+/* ---------- 飞进锅里的那一下 ---------- */
+.flyer{position:fixed;z-index:99;pointer-events:none;width:44px;height:44px;will-change:transform}
+
+/* ---------- toast ---------- */
+.toast{position:fixed;left:50%;bottom:calc(216px + env(safe-area-inset-bottom));transform:translate(-50%,10px);
+  background:var(--ink);color:#FFF8F2;font-size:13px;padding:10px 18px;border-radius:99px;
+  opacity:0;pointer-events:none;transition:opacity .25s,transform .35s var(--spring);z-index:120}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (min-width:880px){ .toast{bottom:36px} }
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms !important;transition-duration:.001ms !important}
+}

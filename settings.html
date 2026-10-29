@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f7a5a">
+<title>Settings — Fridge Decision</title>
+<style>
+  :root{
+    --bg:#f6f7f5; --card:#fff; --ink:#16211c; --muted:#6b7a72; --line:#e2e7e3;
+    --green:#0f7a5a; --green-soft:#e6f2ed; --amber:#b26a00; --red:#b3261e;
+    --shadow:0 1px 2px rgba(16,33,28,.06),0 8px 24px rgba(16,33,28,.06);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;-webkit-text-size-adjust:100%}
+  .wrap{max-width:560px;margin:0 auto;padding:20px 16px 60px}
+  h1{font-size:21px;margin:0 0 4px;letter-spacing:-.02em}
+  .sub{font-size:13px;color:var(--muted);line-height:1.55;margin:0 0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:var(--shadow)}
+  .card h2{font-size:13px;margin:0 0 4px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .card .hint{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 0 12px}
+  .seg{display:flex;flex-wrap:wrap;gap:8px}
+  .seg button{border:1px solid var(--line);background:#fbfcfb;border-radius:10px;padding:9px 12px;
+    font-size:13.5px;font-family:inherit;color:var(--ink);cursor:pointer}
+  .seg button.on{border-color:var(--green);background:var(--green-soft);color:#0b5c44;font-weight:600}
+  .seg svg{pointer-events:none}
+  .list{display:flex;flex-direction:column;gap:8px}
+  .row{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fbfcfb}
+  .row .n{width:20px;height:20px;border-radius:6px;background:var(--green-soft);color:#0b5c44;
+    font-size:11px;font-weight:700;display:grid;place-items:center;flex:0 0 auto}
+  .row .t{flex:1;font-size:14px}
+  .row .t small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}
+  .row .mv{display:flex;gap:4px}
+  .row .mv button{width:30px;height:30px;border:1px solid var(--line);background:#fff;border-radius:8px;
+    font-size:13px;cursor:pointer;color:var(--ink);font-family:inherit}
+  .row .mv button[disabled]{opacity:.35;cursor:default}
+  .num{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;font-size:14px;flex-wrap:wrap}
+  .num + .num{border-top:1px solid var(--line)}
+  .stat{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0 4px}
+  .stat div{background:#fbfcfb;border:1px solid var(--line);border-radius:12px;padding:12px 10px;text-align:center}
+  .stat b{display:block;font-size:22px;letter-spacing:-.02em}
+  .stat span{font-size:11.5px;color:var(--muted)}
+  .btn{display:flex;align-items:center;justify-content:center;width:100%;border:0;border-radius:12px;
+    padding:13px;font-size:14.5px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:10px}
+  .btn.ghost{background:#fff;border:1px solid var(--green);color:var(--green)}
+  .btn.quiet{background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:500}
+  .btn svg{pointer-events:none}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:7px 4px;border-bottom:1px solid var(--line)}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+  td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+  .pill{font-size:10.5px;padding:2px 7px;border-radius:999px;background:var(--green-soft);color:#0b5c44}
+  .pill.est{background:#fdf1e0;color:var(--amber)}
+  .pantryChips{display:flex;flex-wrap:wrap;gap:6px}
+  .toast{position:fixed;left:50%;top:14px;transform:translateX(-50%) translateY(-16px);background:#16211c;color:#fff;
+    font-size:13.5px;padding:10px 16px;border-radius:12px;opacity:0;transition:.25s;z-index:60;pointer-events:none}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  a{color:var(--green)}
+  .foot{font-size:12px;color:#93a29a;line-height:1.7;text-align:center;padding-top:14px}
+  body{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+  .nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.97);
+    border-top:1px solid var(--line);padding:8px 0 calc(8px + env(safe-area-inset-bottom));
+    backdrop-filter:blur(10px)}
+  .navin{max-width:560px;margin:0 auto;display:flex}
+  .nav a, .nav button{flex:1;border:0;background:none;font-family:inherit;cursor:pointer;color:var(--muted);
+    display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;padding:4px 0;
+    text-decoration:none}
+  .nav svg{width:23px;height:23px}
+  .nav .on{color:var(--green);font-weight:600}
+  .version{font-size:10.5px;color:#a9b3ad;text-align:center;margin-top:10px}
+  .btn.primary{background:#0f7a5a;color:#fff;border:1px solid #0f7a5a;font-weight:600}
+  .btn.tiny{padding:5px 10px;font-size:12px;flex:0 0 auto}
+  .inp{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:13px;background:#fff}
+  .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#f0f2f1;color:#6b7a72;font-weight:600;letter-spacing:0}
+  .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+  body{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+  .nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.97);
+    border-top:1px solid var(--line);padding:8px 0 calc(8px + env(safe-area-inset-bottom));
+    backdrop-filter:blur(10px)}
+  .navin{max-width:560px;margin:0 auto;display:flex}
+  .nav a, .nav button{flex:1;border:0;background:none;font-family:inherit;cursor:pointer;color:var(--muted);
+    display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;padding:4px 0;
+    text-decoration:none}
+  .nav svg{width:23px;height:23px}
+  .nav .on{color:var(--green);font-weight:600}
+  .version{font-size:10.5px;color:#a9b3ad;text-align:center;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 data-i18n="set.title">设置</h1>
+  <p class="sub" data-i18n="set.sub"></p>
+
+    <details class="card" id="cloudCard" open>
+    <summary style="cursor:pointer;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:#6b7a72;font-weight:700">
+      云端同步 / Cloud sync <span id="cloudPill" class="pill">未连接</span>
+    </summary>
+    <p class="hint" style="margin-top:10px">填上 Supabase 的 Project URL 和 anon public key，这台设备就连上家庭共享。留空则和现在完全一样 —— 只存在本机。</p>
+    <div class="row" style="margin-top:10px">
+      <input class="inp" id="sbUrl" placeholder="https://xxxx.supabase.co" style="flex:1;min-width:0">
+    </div>
+    <div class="row" style="margin-top:8px">
+      <input class="inp" id="sbKey" placeholder="anon public key（eyJ...）" style="flex:1;min-width:0">
+    </div>
+    <div class="row" style="margin-top:10px">
+      <span class="hint" style="flex:0 0 auto">家庭码</span>
+      <b id="hhCode" style="letter-spacing:.14em;font-size:15px">—</b>
+      <button class="btn tiny" id="hhNew">重新生成</button>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn primary" id="sbSave">保存并连接</button>
+      <button class="btn" id="sbTest">测试连接</button>
+    </div>
+    <div class="hint" id="sbMsg" style="margin-top:8px"></div>
+  </details>
+
+<section class="card">
+    <h2 data-i18n="set.langH">语言 / Language</h2>
+    <p class="hint" data-i18n="set.langHint"></p>
+    <div class="seg" id="langSeg">
+      <button data-lang="zh">中文</button>
+      <button data-lang="en">English</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="set.panelH"></h2>
+    <p class="hint" data-i18n="set.panelHint"></p>
+    <div class="seg" id="rot">
+      <button data-ms="4000" data-i18n="set.rot4"></button>
+      <button data-ms="6000" data-i18n="set.rot6"></button>
+      <button data-ms="10000" data-i18n="set.rot10"></button>
+      <button data-ms="20000" data-i18n="set.rot20"></button>
+      <button data-ms="0" data-i18n="set.rotManual"></button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="set.screensH"></h2>
+    <p class="hint" data-i18n="set.screensHint"></p>
+    <div class="list" id="screens"></div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="set.goalH"></h2>
+    <p class="hint" data-i18n="set.goalHint"></p>
+    <div class="num">
+      <span data-i18n="set.greens"></span>
+      <span class="seg" id="greens">
+        <button data-v="0" data-i18n="set.off"></button>
+        <button data-v="1">1</button><button data-v="2">2</button>
+      </span>
+    </div>
+    <div class="num">
+      <span data-i18n="set.mins"></span>
+      <span class="seg" id="mins">
+        <button data-v="10">10</button><button data-v="15">15</button>
+        <button data-v="20">20</button><button data-v="30">30</button>
+      </span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="set.keysH"></h2>
+    <p class="hint" data-i18n="set.keysHint"></p>
+    <div class="list">
+      <div class="row"><span class="n">›</span><div class="t"><span data-i18n="set.keyNext"></span><small data-i18n="set.keyNextSub"></small></div></div>
+      <div class="row"><span class="n">✓</span><div class="t"><span data-i18n="set.keyTake"></span><small data-i18n="set.keyTakeSub"></small></div></div>
+      <div class="row"><span class="n">✕</span><div class="t"><span data-i18n="set.keySkip"></span><small data-i18n="set.keySkipSub"></small></div></div>
+    </div>
+    <div class="stat">
+      <div><b id="s-take">0</b><span data-i18n="set.taken"></span></div>
+      <div><b id="s-skip">0</b><span data-i18n="set.skipped"></span></div>
+      <div><b id="s-rate">—</b><span data-i18n="set.rate"></span></div>
+    </div>
+    <button class="btn quiet" id="clearLog" data-i18n="set.clearLog"></button>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="set.pantryH"></h2>
+    <p class="hint" data-i18n="set.pantryHint"></p>
+    <div class="pantryChips" id="pantryChips"></div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="set.hhH"></h2>
+    <p class="hint" data-i18n="set.hhHint"></p>
+    <div class="stat" style="grid-template-columns:1fr 1fr">
+      <div><b id="hhCode" style="font-size:20px;letter-spacing:.16em">—</b><span data-i18n="set.hhCode"></span></div>
+      <div><b id="hhPanel" style="font-size:20px">—</b><span data-i18n="set.hhPanel"></span></div>
+    </div>
+    <button class="btn ghost" id="hhNew" data-i18n="set.hhNew"></button>
+    <button class="btn quiet" id="hhPanelBtn" data-i18n="set.hhBind"></button>
+    <div id="hhMembers" class="hint" style="margin-top:10px"></div>
+    <p class="hint" style="margin-top:8px;color:#b26a00" data-i18n="set.hhLimit"></p>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="set.dbH"></h2>
+    <p class="hint" id="dbHint"></p>
+    <table>
+      <thead><tr>
+        <th data-i18n="set.foodCol"></th><th data-i18n="set.catCol"></th>
+        <th class="r" data-i18n="set.daysCol"></th><th class="r" data-i18n="set.srcCol"></th>
+      </tr></thead>
+      <tbody id="dbRows"></tbody>
+    </table>
+    <button class="btn ghost" id="showAll"></button>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="set.rcH"></h2>
+    <p class="hint" id="rcHint"></p>
+    <table>
+      <thead><tr>
+        <th data-i18n="set.rcDish"></th><th class="r" data-i18n="set.rcTime"></th>
+        <th class="r" data-i18n="set.rcKcal"></th><th class="r" data-i18n="set.rcNeeds"></th>
+      </tr></thead>
+      <tbody id="rcRows"></tbody>
+    </table>
+    <button class="btn ghost" id="showAllRecipes"></button>
+  </section>
+
+  <a class="btn ghost" href="disc.html" style="text-decoration:none" data-i18n="set.toPuck"></a>
+  <a class="btn ghost" href="display.html" style="text-decoration:none" data-i18n="set.toStrip"></a>
+  <a class="btn quiet" href="stack.html" style="text-decoration:none">架构 / Stack</a>
+
+
+  <div class="foot" data-i18n="set.foot"></div>
+  <div class="version" id="ver"></div>
+</div>
+
+<nav class="nav">
+  <div class="navin">
+    <a href="index.html#fridge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <rect x="6" y="3.2" width="12" height="17.6" rx="2.6"/><path d="M6 9.6h12M9 5.6v2M9 11.8v2.4"/>
+      </svg>
+      <span data-i18n="nav.fridge">冰箱</span>
+    </a>
+    <a href="index.html#discover">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M12 3.4l2.2 5.4 5.8.5-4.4 3.8 1.3 5.7L12 15.7 7.1 18.8l1.3-5.7L4 9.3l5.8-.5z"/>
+      </svg>
+      <span data-i18n="nav.discover">推荐</span>
+    </a>
+    <a href="index.html#build">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M4 6.5h11M4 12h11M4 17.5h11"/>
+        <path d="M18.4 5l1.5 1.6-1.5 1.6-1.5-1.6z"/><path d="M18.4 15l1.5 1.6-1.5 1.6-1.5-1.6z"/>
+      </svg>
+      <span data-i18n="nav.build">自己选</span>
+    </a>
+    <a href="settings.html" class="on">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M4 7h16M4 17h16"/>
+        <circle cx="9" cy="7" r="2.1"/><circle cx="15.5" cy="17" r="2.1"/>
+      </svg>
+      <span data-i18n="nav.settings">设置</span>
+    </a>
+  </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script src="data.js?v=20261029-5"></script>
+<script src="icons.js?v=20261029-5"></script>
+<script src="sync.js?v=20261029-10"></script>
+<script src="logic.js?v=20261029-5"></script>
+<script src="i18n.js?v=20261029-6"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const t = (k, v) => I18N.t(k, v);
+let S = FD.settings();
+
+const SCREEN_META = [
+  {i:0, zh:"今晚的决定", en:"Tonight's decision", zhSub:"一道菜 + 理由 + 用时", enSub:"one dish, the reason, the time"},
+  {i:1, zh:"先吃这个", en:"Use first", zhSub:"最紧急那一样 + 剩余天数", enSub:"the most urgent item and its days left"},
+  {i:2, zh:"冰箱概览", en:"At a glance", zhSub:"几样要赶紧吃", enSub:"how many need using soon"}
+];
+
+function foodName(id){ return I18N.foodName(id); }
+function toast(m){ const el=$("#toast"); el.textContent=m; el.classList.add("on");
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("on"),1500); }
+function save(patch, msg){ S = FD.saveSettings(patch); paint(); if(msg) toast(msg); }
+
+function paint(){
+  $("#langSeg").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.lang === I18N.getLang()));
+  document.querySelectorAll("#rot button").forEach(b=>{
+    const ms = +b.dataset.ms;
+    const on = ms === 0 ? (!S.auto || S.rotMs === 0) : (S.auto && S.rotMs === ms);
+    b.classList.toggle("on", on);
+  });
+
+  const list = $("#screens"); list.innerHTML = "";
+  const en = I18N.getLang() === "en";
+  (S.screens || []).forEach((idx, pos)=>{
+    const m = SCREEN_META.find(x=>x.i===idx);
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `<span class="n">${pos+1}</span>
+      <div class="t">${en ? m.en : m.zh}<small>${en ? m.enSub : m.zhSub}</small></div>
+      <div class="mv">
+        <button data-up="${pos}" ${pos===0?"disabled":""}>▲</button>
+        <button data-down="${pos}" ${pos===S.screens.length-1?"disabled":""}>▼</button>
+        <button data-rm="${pos}">✕</button>
+      </div>`;
+    list.appendChild(row);
+  });
+  const hidden = SCREEN_META.filter(m=>!(S.screens||[]).includes(m.i));
+  if(hidden.length){
+    const row = document.createElement("div");
+    row.className = "row"; row.style.borderStyle = "dashed";
+    row.innerHTML = `<div class="t" style="color:#6b7a72">${t("set.hidden")}${hidden.map(h=>en?h.en:h.zh).join(", ")}</div>
+      <div class="mv"><button id="restore">＋</button></div>`;
+    list.appendChild(row);
+  }
+
+  document.querySelectorAll("#greens button").forEach(b=>b.classList.toggle("on", +b.dataset.v === S.greensPerDay));
+  document.querySelectorAll("#mins button").forEach(b=>b.classList.toggle("on", +b.dataset.v === S.maxMinutes));
+
+  const st = FD.stats();
+  $("#s-take").textContent = st.taken; $("#s-skip").textContent = st.skipped;
+  $("#s-rate").textContent = st.rate === null ? "—" : st.rate + "%";
+}
+
+let showAllFoods = false, allRecipes = false;
+
+function paintDB(){
+  const foods = FD.CATALOG;
+  const usda = foods.filter(f=>f.src==="usda").length;
+  $("#dbHint").innerHTML = t("set.dbHint", {foods: foods.length, recipes: FD.RECIPES.length, usda: usda, est: foods.length - usda});
+  const rows = showAllFoods ? foods : foods.slice().sort((a,b)=>a.days-b.days).slice(0,8);
+  $("#dbRows").innerHTML = rows.map(f=>`
+    <tr><td>${foodName(f.id)}</td><td style="color:#6b7a72">${f.tag}</td>
+    <td class="r">${f.days} d</td>
+    <td class="r"><span class="pill ${f.src==="usda"?"":"est"}">${f.src==="usda"?"USDA":"est."}</span></td></tr>`).join("");
+  $("#showAll").textContent = showAllFoods ? t("set.showFew") : t("set.showAll", {n: foods.length});
+}
+
+function paintRecipes(){
+  const rs = allRecipes ? FD.RECIPES : FD.RECIPES.slice(0, 8);
+  $("#rcHint").innerHTML = t("set.rcHint", {n: FD.RECIPES.length, src: "HowToCook", lic: FD.DB.recipeSource.license});
+  $("#rcRows").innerHTML = rs.map(r=>`
+    <tr><td>${I18N.recipeName(r)}</td><td class="r">${r.minutes}′</td>
+    <td class="r">${r.kcal ?? "—"}</td>
+    <td class="r" style="color:#6b7a72">${r.needs.map(foodName).join(" ")}</td></tr>`).join("");
+  $("#showAllRecipes").textContent = allRecipes ? t("set.rcFew") : t("set.rcAll", {n: FD.RECIPES.length});
+}
+
+function paintPantry(){
+  const have = new Set(FD.pantry());
+  $("#pantryChips").innerHTML = FD.PANTRY.map(p =>
+    `<span class="pill ${have.has(p.id)?"":"est"}" data-p="${p.id}" style="cursor:pointer;font-size:12px;padding:5px 9px">${I18N.getLang()==="en"?p.name:p.cn}</span>`).join("");
+}
+
+function paintHousehold(){
+  const h = FD.household();
+  $("#hhCode").textContent = h.code || "—";
+  $("#hhPanel").textContent = h.panel ? (I18N.getLang()==="en"?"yes":"是") : (I18N.getLang()==="en"?"no":"否");
+  $("#hhMembers").textContent = h.members.length ? t("set.hhJoined") + h.members.join(", ") : t("set.hhNone");
+}
+
+/* ---------- 云端同步 ---------- */
+function paintCloud(){
+  const c = (window.SYNC && SYNC.cfg) ? SYNC.cfg() : {};
+  if ($("#sbUrl")) $("#sbUrl").value = c.url || "";
+  if ($("#sbKey")) $("#sbKey").value = c.key || "";
+  const on = !!(c.url && c.key);
+  const pill = $("#cloudPill");
+  if (pill) {
+    pill.textContent = on ? "已连接" : "未连接";
+    pill.style.background = on ? "#e6f2ed" : "#f0f2f1";
+    pill.style.color = on ? "#0b5c44" : "#6b7a72";
+  }
+  const hh = $("#hhCode");
+  if (hh) hh.textContent = FD.household().code || "（首次保存时生成）";
+}
+function cloudMsg(t, bad){
+  const el = $("#sbMsg"); if (!el) return;
+  el.textContent = t; el.style.color = bad ? "#b3261e" : "#0b5c44";
+}
+
+function paintAll(){
+  I18N.apply();
+  paintCloud();
+  document.title = (I18N.getLang() === "en" ? "Settings" : "设置") + " — Fridge Decision";
+  $("#ver").textContent = "build 20261029-10";
+  paint(); paintDB(); paintRecipes(); paintPantry(); paintHousehold();
+}
+
+/* ---------- events ---------- */
+$("#sbSave") && $("#sbSave").addEventListener("click", async () => {
+  const url = $("#sbUrl").value.trim(), key = $("#sbKey").value.trim();
+  if (!url || !key) { cloudMsg("URL 和 anon key 都要填。", true); return; }
+  SYNC.configure(url, key);
+  cloudMsg("正在测试…", false);
+  try {
+    const r = await SYNC.ping();
+    if (!r.ok) { cloudMsg("连不上：" + r.reason, true); return; }
+    const code = FD.sync.code();
+    const n = await SYNC.pull(code);
+    $("#hhCode").textContent = code;
+    cloudMsg("已连接。云端这个家庭现有 " + (Array.isArray(n) ? n.length : 0) + " 样东西；刷新 App 生效。", false);
+    paintCloud();
+  } catch (e) { cloudMsg("出错：" + e.message, true); }
+});
+
+$("#sbTest") && $("#sbTest").addEventListener("click", async () => {
+  const url = $("#sbUrl").value.trim(), key = $("#sbKey").value.trim();
+  if (url && key) SYNC.configure(url, key);
+  try {
+    const r = await SYNC.ping();
+    cloudMsg(r.ok ? "连接正常（HTTP " + r.status + "）" : "连不上：" + r.reason, !r.ok);
+  } catch (e) { cloudMsg("出错：" + e.message, true); }
+});
+
+$("#hhNew") && $("#hhNew").addEventListener("click", () => {
+  const c = FD.newCode();
+  FD.saveHousehold({ code: c });
+  $("#hhCode").textContent = c;
+  cloudMsg("新家庭码 " + c + "：另一台手机填这个码就加入同一个冰箱。", false);
+});
+
+$("#langSeg").addEventListener("click", e=>{
+  const b = e.target.closest("[data-lang]"); if(!b) return;
+  I18N.setLang(b.dataset.lang); paintAll(); toast(b.dataset.lang === "en" ? "English" : "中文");
+});
+document.querySelectorAll("#rot button").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    const ms = +b.dataset.ms;
+    save(ms === 0 ? {auto:false, rotMs:0} : {auto:true, rotMs:ms},
+         ms === 0 ? (I18N.getLang()==="en"?"Panel moves only on the button":"只按键翻页") : (I18N.getLang()==="en"?"Saved":"已保存"));
+  });
+});
+$("#screens").addEventListener("click", e=>{
+  const el = e.target;
+  if(el.id === "restore"){ save({screens:[0,1,2]}, I18N.getLang()==="en"?"All screens back":"全部恢复"); return; }
+  if(el.dataset.up !== undefined || el.dataset.down !== undefined || el.dataset.rm !== undefined){
+    const arr = (S.screens || []).slice();
+    if(el.dataset.rm !== undefined){
+      if(arr.length <= 1){ toast(I18N.getLang()==="en"?"Keep at least one screen":"至少留一屏"); return; }
+      arr.splice(+el.dataset.rm, 1); save({screens:arr}, I18N.getLang()==="en"?"Screen hidden":"已隐藏");
+    } else {
+      const pos = +(el.dataset.up ?? el.dataset.down);
+      const swap = el.dataset.up !== undefined ? pos-1 : pos+1;
+      [arr[pos], arr[swap]] = [arr[swap], arr[pos]];
+      save({screens:arr}, I18N.getLang()==="en"?"Order saved":"顺序已保存");
+    }
+  }
+});
+document.querySelectorAll("#greens button").forEach(b=>b.addEventListener("click", ()=> save({greensPerDay:+b.dataset.v})));
+document.querySelectorAll("#mins button").forEach(b=>b.addEventListener("click", ()=> save({maxMinutes:+b.dataset.v})));
+$("#clearLog").addEventListener("click", ()=>{ FD.write(FD.LS_LOG, []); paint(); toast(I18N.getLang()==="en"?"Log cleared":"已清空"); });
+$("#showAll").addEventListener("click", ()=>{ showAllFoods = !showAllFoods; paintDB(); });
+$("#showAllRecipes").addEventListener("click", ()=>{ allRecipes = !allRecipes; paintRecipes(); });
+$("#pantryChips").addEventListener("click", e=>{
+  const el = e.target.closest("[data-p]"); if(!el) return;
+  const have = new Set(FD.pantry()); const id = el.dataset.p;
+  have.has(id) ? have.delete(id) : have.add(id);
+  FD.savePantry([...have]); paintPantry();
+});
+$("#hhNew").addEventListener("click", ()=>{
+  const h = FD.household();
+  const code = h.code || FD.newCode();
+  FD.saveHousehold({code, members: h.members.length ? h.members : ["this phone"]});
+  paintHousehold(); toast((I18N.getLang()==="en"?"Household code: ":"家庭码：") + code);
+});
+$("#hhPanelBtn").addEventListener("click", ()=>{
+  const h = FD.household();
+  if(!h.code){ toast(I18N.getLang()==="en"?"Create a code first":"先创建家庭码"); return; }
+  FD.saveHousehold({panel: !h.panel}); paintHousehold();
+});
+
+paintAll();
+</script>
+</body>
+</html>

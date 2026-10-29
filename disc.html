@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fridge Disc — 240×240</title>
+<style>
+  :root{ --page:#f2f4f1; --ink:#14110f; --paper:#f6f3ec; --line:#d9d3c6;
+         --red:#b3261e; --amber:#b8860b; --green:#2f7d4f; --dim:#6d655b; --bezel:#e7e9e5; --bezel2:#d5d8d2; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--page);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;-webkit-text-size-adjust:100%}
+  .page{max-width:640px;margin:0 auto;padding:22px 18px 40px}
+  h1{font-size:19px;margin:0 0 4px}
+  .lede{font-size:13px;color:#5d6a62;line-height:1.55;margin:0 0 16px}
+  .lede code{background:#e8ece8;padding:1px 5px;border-radius:5px;font-size:12px}
+
+  .stage{display:flex;justify-content:center;margin:6px 0 10px}
+  .disc{position:relative;width:240px;height:240px;border-radius:50%;
+    background:radial-gradient(circle at 34% 28%, #fffdf8, var(--paper) 62%);
+    box-shadow:0 16px 34px rgba(20,17,15,.16), inset 0 2px 10px rgba(0,0,0,.06);
+    border:10px solid #e9ebe7; transform-origin:center}
+  .disc > svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+  .disc .centre svg{width:42px;height:42px;color:var(--ink);display:block;margin:2px auto 0}
+  .ring-bg{fill:none;stroke:#e6e1d5;stroke-width:22}
+  .centre{position:absolute;inset:0;display:grid;place-content:center;text-align:center;padding:0 46px}
+  .k{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+  .n{font-size:30px;font-weight:800;line-height:.95;letter-spacing:-.03em;margin:3px 0 2px}
+  .u{font-size:10.5px;font-weight:700;letter-spacing:.06em;color:var(--red);text-transform:uppercase}
+  .d{font-size:9.5px;color:var(--dim);margin-top:4px;line-height:1.3}
+  .bezel{position:relative;background:linear-gradient(180deg,var(--bezel),var(--bezel2));
+    border-radius:50%;padding:16px;box-shadow:0 18px 40px rgba(20,17,15,.14),inset 0 1px 0 #fff}
+  .badge{position:absolute;bottom:-26px;left:0;right:0;text-align:center;font-size:9.5px;
+    letter-spacing:.14em;text-transform:uppercase;color:#8d918a}
+
+  .ctl{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:34px 0 6px}
+  .btn{border:1px solid #cfd5cf;background:#fff;border-radius:11px;padding:9px 13px;font-size:13px;
+    font-family:inherit;cursor:pointer;color:#1f2c26}
+  .btn.on{border-color:#0f7a5a;color:#0b5c44;background:#eaf4ef;font-weight:600}
+  .legend{display:flex;gap:14px;justify-content:center;font-size:11.5px;color:#6b7a72;margin-top:6px;flex-wrap:wrap}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+  .notes{margin:26px 0 0;border-top:1px solid #e2e7e3;padding-top:16px;font-size:13px;line-height:1.65;color:#3a473f}
+  .notes h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#7b877f;margin:0 0 8px}
+  .notes ol{margin:0;padding-left:20px} .notes li{margin:6px 0}
+  .warn{background:#fdf1e0;border:1px solid #f0d9b5;border-radius:12px;padding:12px 14px;
+    font-size:12.5px;line-height:1.6;color:#7a4a05;margin:12px 0}
+  a.back{display:inline-block;margin-top:16px;font-size:13.5px;color:#0f7a5a;margin-right:14px}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Fridge disc</h1>
+  <p class="lede">The other half of the team's concept: a round puck on the fridge door. No text to read from
+    across the kitchen — just a ring that says <i>how much is about to go off</i>, and one line in the middle.</p>
+
+  <div class="stage">
+    <div class="bezel">
+      <div class="disc" id="disc">
+        <svg viewBox="0 0 240 240">
+          <circle class="ring-bg" cx="120" cy="120" r="96"></circle>
+          <g id="segments"></g>
+        </svg>
+        <div class="centre">
+          <div class="k" id="k">use first</div>
+          <div class="n" id="n">🦐</div>
+          <div class="u" id="u">1 day</div>
+          <div class="d" id="d">今晚 · 洋葱炒猪肉</div>
+        </div>
+      </div>
+      <div class="badge">240 × 240 · round</div>
+    </div>
+  </div>
+
+  <div class="ctl">
+    <button class="btn on" id="modeCount">环口径：按数量占比</button>
+    <button class="btn" id="modeItem">环口径：每样食物一扇区</button>
+  </div>
+  <div class="ctl">
+    <button class="btn on" id="v240">240 px（1.28″ 圆屏）</button>
+    <button class="btn" id="v152">152 px（1.54″ 圆形墨水屏）</button>
+    <button class="btn" id="seed">载入示例</button>
+  </div>
+  <div class="legend">
+    <span><i style="background:#b3261e"></i>≤2 天</span>
+    <span><i style="background:#b8860b"></i>3–5 天</span>
+    <span><i style="background:#2f7d4f"></i>更久</span>
+  </div>
+
+  <div class="notes">
+    <h2>这个圆片负责什么，不负责什么</h2>
+    <ol>
+      <li><b>它只表达紧迫度，不表达菜名。</b>环按「快坏的数量占比」分段 —— 走过厨房一眼就知道冰箱在报警。
+          菜名只在中间一行，作为"顺带"的信息。</li>
+      <li><b>它不能替代决定。</b>圆片放不下理由、热量和缺什么；所以决定留在手机，圆片负责"该管冰箱了"。</li>
+      <li><b>红黄绿三个颜色这件事，需要说清楚：</b>三色电子墨水只有<u>黑/白/红</u>，没有黄也没有绿。
+          想真做出红黄绿环，硬件就得换成 <b>RGB LED 环 + 一块单色小屏</b>（这正是你同学写的"外围 LED"），
+          或者用 4 色墨水屏（贵且少见）。下面这个模拟是按 RGB LED 的配色画的，不是墨水屏能力。</li>
+    </ol>
+    <div class="warn">如果坚持用三色墨水屏：环只能做「红 / 黑 / 白」三档（红=快坏，黑=还有，白=空），
+      语义仍然成立，但少了"黄"这一档的过渡感。</div>
+    <a class="back" href="index.html">← 手机 App</a>
+    <a class="back" href="display.html">长条屏版本 →</a>
+  </div>
+</div>
+
+<script src="data.js?v=20261029-5"></script>
+<script src="icons.js?v=20261029-5"></script>
+<script src="sync.js"></script>
+<script src="logic.js?v=20261029-5"></script>
+<script src="i18n.js?v=20261029-6"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const L = (zh, en) => (window.I18N && I18N.getLang() === "en") ? en : zh;
+const DEMO = [
+  {cat:"pork", daysLeft:3}, {cat:"chili", daysLeft:7}, {cat:"egg", daysLeft:21},
+  {cat:"greens", daysLeft:2}, {cat:"rice", daysLeft:3}, {cat:"tofu", daysLeft:4}
+];
+const R = 96, C = 2 * Math.PI * R;
+
+function itemsNow(){
+  const stored = FD.items();
+  if(Array.isArray(stored) && stored.length){
+    return stored.map(i => ({cat:i.cat, daysLeft:FD.daysLeftOf(i), name:i.name}));
+  }
+  return DEMO;
+}
+
+let ringMode = "count";   // count = 三段占比（原概念）; item = 每样一扇区
+
+function paint(){
+  const items = itemsNow();
+  const ranked = FD.decide(items.map(i => ({
+      id:i.cat, cat:i.cat, name:i.name || (FD.byId[i.cat]||{}).name,
+      daysLeft:i.daysLeft, life:i.daysLeft, addedAt:null
+  })), FD.settings()).filter(r => r.status !== "blocked");
+
+  const red = items.filter(i => i.daysLeft <= 2).length;
+  const amber = items.filter(i => i.daysLeft > 2 && i.daysLeft <= 5).length;
+  const green = items.filter(i => i.daysLeft > 5).length;
+  const total = Math.max(1, red + amber + green);
+
+  let segs;
+  if (ringMode === "count") {
+    segs = [
+      {n:red,   color:"#b3261e"},
+      {n:amber, color:"#b8860b"},
+      {n:green, color:"#2f7d4f"}
+    ];
+  } else {
+    // 每样食物一个等宽扇区：谁快坏了，谁就是红的 —— 一眼数得出来
+    const shown = items.slice().sort((a,b)=>a.daysLeft-b.daysLeft).slice(0, 12);
+    segs = shown.map(i => ({
+      n: 1,
+      color: i.daysLeft <= 2 ? "#b3261e" : (i.daysLeft <= 5 ? "#b8860b" : "#2f7d4f")
+    }));
+    if (items.length > 12) segs.push({n: items.length - 12, color: "#cdc6b8"});
+  }
+  const unitTotal = Math.max(1, segs.reduce((s,x)=>s+x.n, 0));
+  let offset = 0, html = "";
+  segs.forEach(sg => {
+    if(!sg.n) return;
+    const len = (sg.n / unitTotal) * C;
+    html += `<circle cx="120" cy="120" r="${R}" fill="none" stroke="${sg.color}" stroke-width="22"
+      stroke-dasharray="${Math.max(0, len - 3)} ${C - Math.max(0, len - 3)}"
+      stroke-dashoffset="${-offset}" stroke-linecap="butt"></circle>`;
+    offset += len;
+  });
+  $("#segments").innerHTML = html;
+
+  const urgent = items.slice().sort((a,b)=>a.daysLeft-b.daysLeft)[0];
+  const top = ranked[0];
+  if(urgent){
+    const f = FD.byId[urgent.cat] || {};
+    $("#k").textContent = L("先吃这个", "use first");
+    $("#n").innerHTML = window.FD_ICON(urgent.cat, 34);
+    $("#u").textContent = urgent.daysLeft <= 0 ? L("今天", "today") : urgent.daysLeft + L(" 天", " d");
+    $("#u").style.color = urgent.daysLeft <= 5 ? "var(--red)" : "var(--green)";
+    $("#d").textContent = top ? L("今晚 · ", "tonight · ") + (window.I18N ? I18N.recipeName(top.recipe) : top.recipe.name) : L("冰箱已清空", "fridge is empty");
+  } else {
+    $("#k").textContent = "fridge"; $("#n").textContent = "—"; $("#u").textContent = "空";
+    $("#d").textContent = "先去加点东西";
+  }
+}
+
+$("#v240").addEventListener("click", ()=>{
+  $("#disc").style.transform = "scale(1)";
+  $("#v240").classList.add("on"); $("#v152").classList.remove("on");
+});
+$("#v152").addEventListener("click", ()=>{
+  $("#disc").style.transform = "scale(152/240)";
+  $("#v152").classList.add("on"); $("#v240").classList.remove("on");
+});
+$("#seed").addEventListener("click", ()=>{
+  const t = FD.localDate();
+  FD.saveItems(DEMO.map(d => {
+    const f = FD.byId[d.cat];
+    return {id: Math.random().toString(36).slice(2,9), cat:d.cat, name:f.name, tag:f.tag,
+            qty:1, unit:FD.unitOf(d.cat), daysLeft:d.daysLeft, life:d.daysLeft, addedAt:t};
+  }));
+  paint();
+  document.querySelector(".disc").animate(
+    [{opacity:.4},{opacity:1}], {duration:220});
+});
+$("#modeCount").addEventListener("click", ()=>{
+  ringMode = "count"; paint();
+  $("#modeCount").classList.add("on"); $("#modeItem").classList.remove("on");
+});
+$("#modeItem").addEventListener("click", ()=>{
+  ringMode = "item"; paint();
+  $("#modeItem").classList.add("on"); $("#modeCount").classList.remove("on");
+});
+paint();
+</script>
+</body>
+</html>

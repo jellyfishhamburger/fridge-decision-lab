@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>无接触录入 · 单摄像头方案</title>
+<style>
+  :root{
+    --bg:#f6f7f5; --card:#fff; --ink:#16211c; --muted:#6b7a72; --line:#e2e7e3;
+    --green:#0f7a5a; --green-soft:#e6f2ed; --amber:#b26a00; --amber-soft:#fdf1e0;
+    --red:#b3261e; --red-soft:#fbe9e7;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-text-size-adjust:100%;line-height:1.55}
+  .wrap{max-width:720px;margin:0 auto;padding:22px 16px 60px}
+  h1{font-size:21px;margin:0 0 6px;letter-spacing:-.02em}
+  .sub{font-size:13.5px;color:var(--muted);margin:0 0 18px}
+  h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:26px 0 10px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  td b{font-weight:600}
+  .ok{color:var(--green);font-weight:600}
+  .warn{color:var(--amber);font-weight:600}
+  .bad{color:var(--red);font-weight:600}
+  ul{margin:8px 0 0;padding-left:20px} li{margin:5px 0;font-size:13.5px}
+  p{font-size:13.5px;margin:8px 0}
+  .tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:999px;background:var(--green-soft);color:#0b5c44;font-weight:600}
+  .tag.a{background:var(--amber-soft);color:#7a4a05}
+  .tag.r{background:var(--red-soft);color:#8f231c}
+  svg{display:block;width:100%;height:auto}
+  .note{font-size:12.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>无接触录入：单摄像头可行方案</h1>
+  <p class="sub">前提：不用电子秤、不用小票、用户不做任何"拍照"动作。摄像头只有一个。</p>
+
+  <h2>一、位置：摄像头在冰箱门框上沿，朝内</h2>
+  <div class="card">
+    <svg viewBox="0 0 680 340" role="img" aria-label="冰箱剖面示意图">
+      <!-- fridge body -->
+      <rect x="150" y="30" width="300" height="270" rx="14" fill="#fff" stroke="#16211c" stroke-width="3"/>
+      <rect x="150" y="30" width="300" height="270" rx="14" fill="#f2f5f3"/>
+      <!-- door -->
+      <rect x="112" y="30" width="40" height="270" rx="10" fill="#e6ece8" stroke="#16211c" stroke-width="3"/>
+      <line x1="132" y1="46" x2="132" y2="120" stroke="#9aa8a1" stroke-width="6" stroke-linecap="round"/>
+      <!-- shelves -->
+      <line x1="150" y1="120" x2="450" y2="120" stroke="#c8d2cc" stroke-width="5"/>
+      <line x1="150" y1="196" x2="450" y2="196" stroke="#c8d2cc" stroke-width="5"/>
+      <line x1="150" y1="262" x2="450" y2="262" stroke="#c8d2cc" stroke-width="5"/>
+      <!-- camera at door frame top, pointing in -->
+      <rect x="196" y="38" width="30" height="20" rx="5" fill="#16211c"/>
+      <circle cx="211" cy="58" r="6" fill="#0f7a5a"/>
+      <path d="M211 64 L158 296 L292 296 Z" fill="#0f7a5a" opacity=".12"/>
+      <path d="M211 58 L292 296" stroke="#0f7a5a" stroke-width="1.5" stroke-dasharray="5 5"/>
+      <text x="236" y="50" font-size="12.5" fill="#0f7a5a" font-weight="700">① 摄像头（门框上沿，俯视内腔）</text>
+      <!-- door sensor -->
+      <rect x="150" y="86" width="14" height="18" rx="3" fill="#b26a00"/>
+      <rect x="118" y="86" width="14" height="18" rx="3" fill="#b26a00"/>
+      <text x="236" y="90" font-size="12.5" fill="#b26a00" font-weight="700">② 门磁（开门/关门事件，¥5）</text>
+      <!-- items -->
+      <rect x="170" y="150" width="46" height="34" rx="6" fill="#cfe4d9" stroke="#0f7a5a" stroke-width="2"/>
+      <text x="176" y="172" font-size="11" fill="#0b5c44">豆腐</text>
+      <circle cx="250" cy="168" r="16" fill="#e9f0ea" stroke="#0f7a5a" stroke-width="2"/>
+      <text x="240" y="172" font-size="10" fill="#0b5c44">番茄</text>
+      <rect x="300" y="140" width="52" height="44" rx="6" fill="#fdf1e0" stroke="#b26a00" stroke-width="2"/>
+      <text x="306" y="166" font-size="11" fill="#7a4a05">鸡蛋盒</text>
+      <!-- blind spot -->
+      <rect x="360" y="126" width="88" height="66" fill="#b3261e" opacity=".10"/>
+      <text x="366" y="150" font-size="11" fill="#8f231c">后排盲区</text>
+      <!-- hand -->
+      <path d="M96 210 q40 -10 66 6" stroke="#16211c" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <text x="30" y="205" font-size="12" fill="#16211c">手（放东西）</text>
+      <text x="150" y="322" font-size="12" fill="#6b7a72">冰箱侧视剖面</text>
+    </svg>
+    <p class="note">关键：摄像头固定在机位 → 每张图的视角、距离、光照都一样。这是识别率能上去的前提，也是手机拍照永远做不到的。</p>
+  </div>
+
+  <h2>二、时序：用户什么都不做，只用关门</h2>
+  <div class="card">
+    <svg viewBox="0 0 680 210" role="img" aria-label="采样时序图">
+      <line x1="40" y1="150" x2="650" y2="150" stroke="#c8d2cc" stroke-width="2"/>
+      <!-- events -->
+      <g font-size="12" fill="#16211c">
+        <circle cx="80"  cy="150" r="7" fill="#16211c"/><text x="56" y="180">开门</text>
+        <circle cx="210" cy="150" r="7" fill="#16211c"/><text x="176" y="180">手伸入·放下</text>
+        <circle cx="330" cy="150" r="7" fill="#16211c"/><text x="308" y="180">手离开</text>
+        <circle cx="440" cy="150" r="7" fill="#0f7a5a"/><text x="412" y="180">关门</text>
+        <circle cx="530" cy="150" r="7" fill="#0f7a5a"/><text x="500" y="180">识别</text>
+        <circle cx="612" cy="150" r="7" fill="#0f7a5a"/><text x="578" y="180">屏显 +2</text>
+      </g>
+      <!-- sampling window -->
+      <rect x="80" y="60" width="360" height="34" rx="8" fill="#0f7a5a" opacity=".14"/>
+      <text x="94" y="82" font-size="12" fill="#0b5c44">开门期间：每 1 秒抽一帧（640×480 就够）</text>
+      <!-- processing -->
+      <rect x="440" y="60" width="90" height="34" rx="8" fill="#0f7a5a" opacity=".28"/>
+      <text x="448" y="82" font-size="11.5" fill="#0b5c44">帧差 + 识别</text>
+      <!-- user effort -->
+      <rect x="80" y="112" width="530" height="20" rx="6" fill="#e6f2ed"/>
+      <text x="92" y="127" font-size="11.5" fill="#0b5c44">用户额外动作：0 次（关门本来就要关）</text>
+    </svg>
+    <p>系统只处理<b>差异</b>：把「关门那一帧」和「开门前那张」相减，多出来的 1–3 个区域才送识别。剩下 90% 的画面根本不用算 —— 这是单摄像头能跑得动的唯一原因。</p>
+  </div>
+
+  <h2>三、三种触发器，为什么选门磁</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>触发器</th><th>用户动作</th><th>准确率</th><th>功耗</th><th>结论</th></tr></thead>
+      <tbody>
+        <tr><td><b>门磁（霍尔 + 磁铁）</b></td><td>0</td><td class="ok">高（开关门是确定事件）</td><td class="ok">只在开门时供电</td><td class="ok">选它，¥5</td></tr>
+        <tr><td>画面亮度突变（门一开灯亮了）</td><td>0</td><td class="warn">中（冰箱内灯有延迟、有的常亮）</td><td>要一直开着摄像头</td><td>备选，纯软件</td></tr>
+        <tr><td>人体/动作检测（PIR 或模型）</td><td>0</td><td class="bad">低（家人路过也会触发）</td><td class="warn">中</td><td>不推荐</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>四、"放了多少"这件事，单摄像头只能近似</h2>
+  <div class="card">
+    <p>这是整个方案里唯一必须承认做不到精确的地方。<span class="tag r">物理限制</span></p>
+    <ul>
+      <li><b>按包装猜：</b>检测到"一盒"→ 默认鸡蛋 10 颗；"一把"→ 青菜 1 份。用户可以改一次，改完记住。</li>
+      <li><b>按面积估：</b>同一种食材连续出现两次且体积相近 → 记 ×2。</li>
+      <li><b>按消失反推：</b>做饭扣 1 份时，如果实际还剩，用户按了一下"还有" → 系统学会这个品类的默认份数。</li>
+    </ul>
+    <p class="note">结论：<b>品类可以准，份数只能近似</b>。产品上就按近似设计 —— 因为"知道有豆腐"已经解决了 80% 的问题，"知道有 3 块还是 4 块豆腐"几乎不影响今晚吃什么。</p>
+  </div>
+
+  <h2>五、四个工程难题，逐个有解</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>问题</th><th>解法</th><th>代价</th></tr></thead>
+      <tbody>
+        <tr><td><b>后排被挡住看不到</b></td><td>摄像头装在中层隔板前沿、以 15° 俯角拍；或接受"只保证前排可见"</td><td>工业设计要跟着改</td></tr>
+        <tr><td><b>冷藏室结露、低温</b></td><td>摄像头放在门框/内顶（不在最冷区），镜头前加疏水镀膜；或整体放门内侧</td><td>选件 + 结构</td></tr>
+        <tr><td><b>冰箱里没有电源</b></td><td>走门铰链处的软排线；或用 18650 + 门磁唤醒（每天开 20 次，能撑 3–6 周）</td><td>走线 or 定期充电</td></tr>
+        <tr><td><b>袋子/盒子里的看不见</b></td><td>接受。产品文案写"看得见的才记录"，并给一次手动补录</td><td>诚实标注</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>六、硬件选型（能真做出来的最小版本）</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>件</th><th>型号</th><th>价格</th><th>为什么</th></tr></thead>
+      <tbody>
+        <tr><td>主控 + 摄像头</td><td>Raspberry Pi Zero 2 W + Camera Module 3</td><td>≈ ¥300</td><td>能本地跑 TFLite，不用云端、不用后端</td></tr>
+        <tr><td>便宜替代</td><td>ESP32-S3-CAM</td><td>≈ ¥60</td><td>便宜，但只能抽帧上传，识别要靠后端</td></tr>
+        <tr><td>门磁</td><td>霍尔传感器 + 磁铁</td><td>≈ ¥5</td><td>触发器</td></tr>
+        <tr><td>供电</td><td>18650 ×2 + 充电板</td><td>≈ ¥60</td><td>不用改冰箱电路</td></tr>
+      </tbody>
+    </table>
+    <p class="note">全套 ≈ ¥400，全部可网购，不需要拆冰箱本体（磁吸 + 3M 胶固定）。</p>
+  </div>
+
+  <h2>七、为什么这个方案比"衣领摄像头"和"小票"好</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>方案</th><th>用户动作</th><th>覆盖</th><th>致命问题</th></tr></thead>
+      <tbody>
+        <tr><td>衣领摄像头（同学方案）</td><td class="bad">要戴、要对着拍</td><td>只能拍到手举起来的那件</td><td class="bad">违反"零主动操作"；只有戴的人能录</td></tr>
+        <tr><td>超市小票</td><td class="warn">要留票、要拍</td><td>只代表"买了"，不代表"放进冰箱"</td><td class="bad">你说的：买了不一定放冰箱，放了不一定有小票</td></tr>
+        <tr><td>电子秤 + 摄像头（你原方案）</td><td class="warn">每件称一次</td><td>全部</td><td class="warn">动线多一步，一周就懒得用</td></tr>
+        <tr><td><b>门框摄像头 + 门磁</b></td><td class="ok">0</td><td>看得见的部分</td><td class="warn">后排盲区、袋装物</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>八、5 天能做什么 / 期末能做什么</h2>
+  <div class="card">
+    <ul>
+      <li><span class="tag">5 天</span> 网页里做"事件模拟器"：点一下"开门/关门"，系统走一遍采样→帧差→识别→录入，把流程演给老师看（不需要真硬件）。</li>
+      <li><span class="tag">2 周</span> Pi Zero 2 W + 门磁装在纸盒做的假冰箱里，真的"开门放东西 → 关门 → App 里多一条"。</li>
+      <li><span class="tag a">做不到</span> 用通用开源模型直接认豆腐/青菜/猪肉片 —— 必须自训 5–8 类的小模型。</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

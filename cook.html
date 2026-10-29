@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>今天的锅 · Fridge Decision</title>
+<meta name="description" content="把冰箱里的食材拖进锅里，看今晚能做什么菜。">
+<meta name="theme-color" content="#FBF6EC">
+<link rel="icon" href="icon.svg">
+<link rel="stylesheet" href="cook.css">
+</head>
+<body>
+
+<header class="top">
+  <a class="back" href="index.html" aria-label="回到冰箱">←<span data-i18n="cook.back">冰箱</span></a>
+  <h1 data-i18n="cook.title">今天的锅</h1>
+  <button class="lang" id="langBtn" aria-label="切换语言">EN</button>
+</header>
+
+<main class="wrap">
+
+  <section class="fridge-sec" aria-labelledby="fridgeHead">
+    <div class="sec-head">
+      <h2 id="fridgeHead" data-i18n="cook.myFridge">我的冰箱</h2>
+      <p class="lede" data-i18n="cook.lede">点一下食材，或者直接把它拖进锅里。</p>
+    </div>
+
+    <div class="fridge" id="fridge">
+      <div class="fridge-door" aria-hidden="true"></div>
+      <div class="shelves" id="shelves"></div>
+      <div class="fridge-foot" aria-hidden="true"></div>
+    </div>
+
+    <p class="legend">
+      <span><i class="g1"></i><span data-i18n="cook.legOk">还新鲜</span></span>
+      <span><i class="g2"></i><span data-i18n="cook.legSoon">3 天内</span></span>
+      <span><i class="g3"></i><span data-i18n="cook.legNow">今天到期</span></span>
+    </p>
+
+    <div class="empty" id="empty" hidden>
+      <p data-i18n="cook.empty">冰箱还是空的。先载入一份示例，看看这个玩法长什么样。</p>
+      <button class="ghost" id="demoBtn" data-i18n="cook.demo">载入示例</button>
+    </div>
+  </section>
+
+  <aside class="pot-sec" id="potSec" aria-labelledby="potHead">
+    <div class="sec-head">
+      <h2 id="potHead" data-i18n="cook.pot">锅里</h2>
+      <p class="lede" id="potCount" data-i18n="cook.picked0">还没放东西</p>
+    </div>
+
+    <div class="pot" id="pot" tabindex="0" role="button"
+         aria-label="锅：把食材放进来" data-i18n-aria="cook.dropHere">
+      <svg class="pot-art" viewBox="0 0 120 96" aria-hidden="true">
+        <ellipse cx="60" cy="86" rx="44" ry="6" fill="#E9DFC9"/>
+        <path class="steam s1" d="M46 30c-5-6 5-9 0-16" stroke="#D8CBB0" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path class="steam s2" d="M60 26c-5-6 5-9 0-16" stroke="#D8CBB0" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path class="steam s3" d="M74 30c-5-6 5-9 0-16" stroke="#D8CBB0" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M14 44h92c0 22-14 34-30 34H44C28 78 14 66 14 44z" fill="#8FA9A2"/>
+        <path d="M14 44h92c0 6-1 11-3 16H17c-2-5-3-10-3-16z" fill="#A6BDB5"/>
+        <rect x="4" y="38" width="14" height="9" rx="4" fill="#7B948D"/>
+        <rect x="102" y="38" width="14" height="9" rx="4" fill="#7B948D"/>
+        <ellipse cx="60" cy="44" rx="46" ry="7" fill="#B9CDC6"/>
+      </svg>
+      <ul class="chips" id="chips"></ul>
+      <p class="pot-hint" id="potHint" data-i18n="cook.dropHint">把食材拖进来</p>
+    </div>
+
+    <button class="primary" id="askBtn" disabled data-i18n="cook.ask">帮我做一道菜</button>
+    <p class="sync" id="syncNote"></p>
+  </aside>
+
+  <section class="result" id="result" aria-live="polite"></section>
+
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="data.js"></script>
+<script src="icons.js"></script>
+<script src="cook-art.js"></script>
+<script src="sync.js"></script>
+<script src="logic.js"></script>
+<script src="i18n.js"></script>
+<script src="cook.js"></script>
+</body>
+</html>

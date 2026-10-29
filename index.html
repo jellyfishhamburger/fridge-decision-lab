@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f7a5a">
+<title>Fridge Decision</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root{
+    --bg:#f6f7f5; --card:#fff; --ink:#16211c; --muted:#6b7a72; --line:#e2e7e3;
+    --green:#0f7a5a; --green-soft:#e6f2ed; --amber:#b26a00; --amber-soft:#fdf1e0;
+    --red:#b3261e; --red-soft:#fbe9e7;
+    --shadow:0 1px 2px rgba(16,33,28,.06),0 8px 24px rgba(16,33,28,.06);
+    --r:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-text-size-adjust:100%}
+  body{padding:0 0 calc(88px + env(safe-area-inset-bottom))}
+  .wrap{max-width:520px;margin:0 auto;padding:0 16px}
+
+  /* ---------- top bar ---------- */
+  .top{position:sticky;top:0;z-index:20;background:rgba(246,247,245,.94);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line)}
+  .topin{max-width:520px;margin:0 auto;padding:14px 16px 10px;display:flex;align-items:center;gap:10px}
+  .topin h1{font-size:19px;margin:0;letter-spacing:-.02em;flex:1;line-height:1.2}
+  .gear{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:#fff;
+    display:grid;place-items:center;cursor:pointer;flex:0 0 auto;text-decoration:none;color:var(--ink)}
+  .gear svg{width:21px;height:21px}
+
+  /* ---------- views ---------- */
+  .view{display:none;padding-top:14px}
+  .view.on{display:block}
+  .lede{font-size:13px;color:var(--muted);line-height:1.5;margin:0 0 12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:0 0 12px;box-shadow:var(--shadow)}
+  .card h2{font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+  .count{font-size:12px;color:var(--muted);font-weight:400}
+
+  /* ---------- fridge rows ---------- */
+  .items{display:flex;flex-direction:column;gap:8px}
+  .chip{display:flex;align-items:center;gap:10px;width:100%;border:1px solid var(--line);background:#fbfcfb;
+    border-radius:14px;padding:13px 14px;font-size:17.5px;line-height:1;font-weight:600}
+  .chip svg{flex:0 0 auto;color:var(--green);width:22px;height:22px}
+  .chip.warn svg{color:var(--amber)} .chip.urgent svg{color:var(--red)}
+  .chip .d{font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums;font-weight:500;margin-left:auto}
+  .chip.warn .d{color:var(--amber)} .chip.urgent .d{color:var(--red);font-weight:600}
+  .chip button{border:0;background:none;padding:0 0 0 2px;margin:0;color:#b7c1bb;font-size:18px;line-height:1;cursor:pointer}
+  .empty{font-size:13px;color:var(--muted);padding:6px 0}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:14px;
+    padding:15px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn.primary{background:var(--green);color:#fff;box-shadow:0 6px 18px rgba(15,122,90,.28)}
+  .btn.primary:active{transform:translateY(1px)}
+  .btn.ghost{background:#fff;color:var(--green);border:1px solid var(--green)}
+  .btn.quiet{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:500}
+  .row{display:flex;gap:10px} .row > *{flex:1}
+
+  /* ---------- verdict ---------- */
+  .verdict{background:var(--green);color:#fff;border-radius:20px;padding:18px;margin:0 0 12px;box-shadow:0 12px 32px rgba(15,122,90,.24)}
+  .verdict.amber{background:#a96206;box-shadow:0 12px 32px rgba(169,98,6,.22)}
+  .verdict .kicker{font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+  .verdict h3{font-size:24px;margin:6px 0 8px;line-height:1.15}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;font-size:13px}
+  .badge{background:rgba(255,255,255,.18);border-radius:8px;padding:3px 8px;font-size:12px;font-weight:600}
+  .shop{background:var(--amber-soft);border:1px solid #f0d9b5;border-radius:14px;padding:12px 14px;margin:0 0 12px;
+    font-size:14px;line-height:1.55;color:#7a4a05}
+  .why{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;font-size:14px;line-height:1.6;color:#2b3a33}
+  .why ul{margin:8px 0 0;padding-left:18px} .why li{margin:4px 0}
+  .steps{font-size:14px;line-height:1.7;margin:10px 0 0;padding-left:20px}
+  .steps li{margin:6px 0}
+  .srcline{font-size:11.5px;color:#93a29a;margin-top:10px}
+  .srcline a{color:#7b9187}
+  .pantryline{margin-top:10px;font-size:13px;color:var(--muted);line-height:1.6}
+  .ptog{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:999px;
+    padding:5px 10px;margin:4px 6px 0 0;font-size:12.5px;cursor:pointer;background:#fff}
+  .ptog.on{border-color:var(--green);background:var(--green-soft);color:#0b5c44}
+
+  /* ---------- recipe list ---------- */
+  .filters{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+  .filters::-webkit-scrollbar{display:none}
+  .f{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 13px;font-size:13px;
+    white-space:nowrap;cursor:pointer;font-family:inherit;color:var(--ink)}
+  .f.on{border-color:var(--green);background:var(--green-soft);color:#0b5c44;font-weight:600}
+  .rc{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:0 0 10px;box-shadow:var(--shadow)}
+  .rc h4{margin:0 0 6px;font-size:17px;letter-spacing:-.01em;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+  .rc .tags{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+  .tg{background:#f2f5f3;border-radius:7px;padding:3px 7px}
+  .tg.g{background:var(--green-soft);color:#0b5c44}
+  .tg.a{background:var(--amber-soft);color:#7a4a05}
+  .rc .uses{font-size:13px;color:#3a473f;margin:8px 0 0;line-height:1.55}
+  .rc details{margin-top:10px}
+  .rc summary{font-size:13.5px;color:var(--green);cursor:pointer;font-weight:600}
+  .rc ol{font-size:13.5px;line-height:1.65;padding-left:20px;margin:8px 0 0}
+  .rc .src{font-size:11px;color:#93a29a;margin-top:8px}
+  .rc .src a{color:#7b9187}
+  .rc .go{width:100%;margin-top:10px;border:1px solid var(--green);background:#fff;color:var(--green);
+    border-radius:11px;padding:11px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer}
+
+  /* ---------- build view ---------- */
+  .picker{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .pf{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fbfcfb;
+    border-radius:12px;padding:10px 12px;font-size:15px;cursor:pointer;font-family:inherit;color:var(--ink)}
+  .pf svg{width:20px;height:20px;color:var(--green)}
+  .pf.on{border-color:var(--green);background:var(--green-soft);font-weight:600}
+  .slider{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;margin:6px 0 2px}
+  .slider input{width:60%;accent-color:var(--green)}
+  .switch{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;padding:10px 0;
+    border-top:1px solid var(--line);margin-top:8px}
+  .switch input{width:20px;height:20px;accent-color:var(--green)}
+  .note{font-size:12px;color:var(--muted);line-height:1.55;margin:8px 0 0}
+
+  /* ---------- quantity stepper ---------- */
+  .qtyrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0;font-size:14px}
+  .step2{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .step2 button{width:42px;height:40px;border:0;background:#fff;font-size:19px;color:var(--ink);cursor:pointer;font-family:inherit}
+  .step2 span{min-width:74px;text-align:center;font-size:15px;font-weight:600;border-left:1px solid var(--line);border-right:1px solid var(--line);height:40px;line-height:40px}
+  .chip .q{font-size:13px;color:var(--muted);background:#eef2ef;border-radius:7px;padding:3px 7px;margin-left:6px;font-weight:600}
+
+  /* ---------- cooking mode ---------- */
+  .cook{position:fixed;inset:0;z-index:70;background:#fbfcfa;display:none;flex-direction:column;
+    padding:calc(14px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom))}
+  .cook.on{display:flex}
+  .ck-top{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--muted)}
+  .ck-top b{color:var(--ink);font-size:16px}
+  .ck-top button{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:10px;
+    width:38px;height:38px;font-size:16px;cursor:pointer;font-family:inherit;color:var(--ink)}
+  .ck-body{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:18px;text-align:center}
+  .ck-icon svg{width:96px;height:96px;color:var(--green);stroke-width:1.3}
+  .ck-text{font-size:23px;line-height:1.5;font-weight:600;letter-spacing:-.01em;max-width:22em}
+  .ck-count{font-size:13px;color:var(--muted);letter-spacing:.08em}
+  .ck-bar{display:flex;gap:10px}
+  .ck-bar button{flex:1;border:1px solid var(--line);background:#fff;border-radius:12px;padding:14px;
+    font-size:15px;font-family:inherit;cursor:pointer;color:var(--ink);font-weight:600}
+  .ck-bar button:disabled{opacity:.4}
+  .ck-done{margin-top:10px}
+  .undo{display:none;align-items:center;gap:10px;background:#16211c;color:#fff;border-radius:12px;
+    padding:12px 14px;font-size:13.5px;margin:0 0 12px;line-height:1.45}
+  .undo.on{display:flex}
+  .undo button{margin-left:auto;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;
+    border-radius:9px;padding:7px 12px;font-size:13px;font-family:inherit;cursor:pointer;flex:0 0 auto}
+
+  /* ---------- camera ---------- */
+  .cam{width:100%;max-height:34vh;object-fit:cover;border-radius:14px;background:#0d1512;
+    display:none;margin-bottom:10px}
+  .cam.on{display:block}
+  .shotpreview{width:100%;max-height:34vh;object-fit:cover;border-radius:14px;display:none;
+    margin-bottom:10px;border:1px solid var(--line)}
+  .shotpreview.on{display:block}
+  .cammsg{font-size:12.5px;color:var(--muted);line-height:1.55;margin:0 0 10px}
+  .zoomrow{display:none;align-items:center;justify-content:space-between;gap:12px;
+    font-size:13.5px;margin:0 0 10px}
+  .zoomrow.on{display:flex}
+  .zoomrow input{width:58%;accent-color:var(--green)}
+
+  /* ---------- bottom nav ---------- */
+  .nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.97);
+    border-top:1px solid var(--line);padding:8px 0 calc(8px + env(safe-area-inset-bottom));
+    backdrop-filter:blur(10px)}
+  .navin{max-width:520px;margin:0 auto;display:flex}
+  .nav button{flex:1;border:0;background:none;font-family:inherit;cursor:pointer;color:var(--muted);
+    display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;padding:4px 0}
+  .nav button svg{width:23px;height:23px}
+  .nav button.on{color:var(--green);font-weight:600}
+  .nav .navset{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;
+    padding:4px 0;color:var(--muted);text-decoration:none}
+  .nav .navset svg{width:23px;height:23px}
+  .nav .navset:active{color:var(--green)}
+
+  /* ---------- sheet ---------- */
+  .scrim{position:fixed;inset:0;background:rgba(12,22,18,.42);display:none;z-index:40}
+  .scrim.on{display:block}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;background:#fff;border-radius:20px 20px 0 0;
+    padding:18px 16px calc(18px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .22s ease;
+    max-width:520px;margin:0 auto;max-height:88vh;overflow:auto}
+  .sheet.on{transform:translateY(0)}
+  .sheet h3{font-size:17px;margin:0 0 4px}
+  .sheet .hint{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 0 12px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 14px}
+  .pick{border:1px solid var(--line);border-radius:12px;background:#fbfcfb;padding:10px 8px;font-size:13px;
+    text-align:center;cursor:pointer;font-family:inherit;line-height:1.3;
+    display:flex;flex-direction:column;align-items:center;gap:3px}
+  .pick small{color:#9aa8a1;font-size:10.5px}
+  .pick.on{border-color:var(--green);background:var(--green-soft);color:#0b5c44;font-weight:600}
+  /* iOS Safari: 按钮里的 SVG 会吞掉 click，图标一律不接收指针事件 */
+  button svg, button svg *{pointer-events:none}
+  .pick, .pf, .chip button{touch-action:manipulation}
+  .pick svg{color:var(--green);display:block}
+  .field{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0;font-size:14px}
+  input[type=range]{accent-color:var(--green)}
+  .toast{position:fixed;left:50%;transform:translateX(-50%) translateY(-16px);top:14px;background:#16211c;color:#fff;
+    font-size:13.5px;padding:10px 16px;border-radius:12px;opacity:0;transition:.25s;z-index:60;pointer-events:none;max-width:86%;
+    box-shadow:0 8px 24px rgba(12,22,18,.24)}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .foot{font-size:11.5px;color:#93a29a;text-align:center;line-height:1.8;padding:18px 8px 0}
+  .foot a{color:#0f7a5a}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="topin">
+    <h1 id="pageTitle">冰箱里有什么</h1>
+    <button class="gear" id="langBtn" aria-label="language" style="font-size:13px;font-weight:700">中</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ============ view 1: fridge ============ -->
+  <section class="view on" id="view-fridge">
+    <p class="lede" data-i18n="fridge.lede">右边数字＝还能放几天，越红越要先吃。数据存在这台设备里。</p>
+    <div class="undo" id="undoBar">
+      <span id="undoText"></span>
+      <button id="undoBtn" data-i18n="undo.btn">撤销</button>
+    </div>
+    <div class="card">
+      <h2><span data-i18n="fridge.stock">存货</span> <span class="count" id="cnt">0</span></h2>
+      <div class="items" id="items"></div>
+      <p class="empty" id="emptyNote" data-i18n="fridge.empty">还没记录任何东西 —— 用下面的按钮加一样。</p>
+      <div class="row" style="margin-top:14px">
+        <button class="btn ghost" id="addBtn" data-i18n="fridge.add">＋ 加一样</button>
+        <button class="btn quiet" id="demoBtn" data-i18n="fridge.demo">载入示例</button>
+      </div>
+    </div>
+    <button class="btn primary" id="decideBtn" data-i18n="fridge.decide">今晚吃什么 →</button>
+    <div id="result" style="margin-top:14px"></div>
+  </section>
+
+  <!-- ============ view 2: discover ============ -->
+  <section class="view" id="view-discover">
+    <p class="lede" data-i18n="disc.lede">按"先用掉快坏的"排序。</p>
+    <div class="filters" id="discFilters">
+      <button class="f on" data-f="all" data-i18n="disc.all">全部</button>
+      <button class="f" data-f="ready" data-i18n="disc.ready">现在就能做</button>
+      <button class="f" data-f="shop1" data-i18n="disc.shop1">差一样</button>
+      <button class="f" data-f="greens" data-i18n="disc.greens">有绿叶菜</button>
+      <button class="f" data-f="light" data-i18n="disc.light">≤ 500 kcal</button>
+    </div>
+    <div id="discList"></div>
+  </section>
+
+  <!-- ============ view 3: build ============ -->
+  <section class="view" id="view-build">
+    <p class="lede" data-i18n="build.lede">先选你今天想吃的。</p>
+    <div class="card">
+      <h2><span data-i18n="build.want">我想吃</span> <span class="count" id="pickCount"></span></h2>
+      <div class="picker" id="picker"></div>
+      <div class="slider">
+        <span><span data-i18n="build.kcal">热量上限</span> <b id="kcalLbl">600 kcal</b></span>
+        <input type="range" id="kcal" min="200" max="1000" step="50" value="600">
+      </div>
+      <div class="slider">
+        <span><span data-i18n="build.mins">最多用时</span> <b id="minLbl">30</b></span>
+        <input type="range" id="mins" min="10" max="40" step="5" value="30">
+      </div>
+      <div class="switch">
+        <span data-i18n="build.mustGreens">必须有绿叶菜</span>
+        <input type="checkbox" id="mustGreens">
+      </div>
+      <div class="switch">
+        <span data-i18n="build.fibre">只看纤维较高的</span>
+        <input type="checkbox" id="highFiber">
+      </div>
+      <p class="note" data-i18n="build.fibreNote"></p>
+      <button class="btn quiet" id="clearPick" style="margin-top:12px" data-i18n="build.clear">清空选择</button>
+    </div>
+    <div id="buildList"></div>
+  </section>
+
+  <div class="foot">
+    <span data-i18n="foot.line">原型 · 无硬件、无图像识别</span> · build 20261029-10<br>
+    <a href="disc.html" data-i18n="foot.disc">圆片 →</a> · <a href="display.html" data-i18n="foot.strip">长条屏 →</a> · <a href="settings.html" data-i18n="foot.settings">设置 →</a>
+  </div>
+</div>
+
+<!-- bottom nav -->
+<nav class="nav">
+  <div class="navin">
+    <button class="on" data-view="fridge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <rect x="6" y="3.2" width="12" height="17.6" rx="2.6"/><path d="M6 9.6h12M9 5.6v2M9 11.8v2.4"/>
+      </svg>
+      <span data-i18n="nav.fridge">冰箱</span>
+    </button>
+    <button data-view="discover">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M12 3.4l2.2 5.4 5.8.5-4.4 3.8 1.3 5.7L12 15.7 7.1 18.8l1.3-5.7L4 9.3l5.8-.5z"/>
+      </svg>
+      <span data-i18n="nav.discover">推荐</span>
+    </button>
+    <button data-view="build">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M4 6.5h11M4 12h11M4 17.5h11"/>
+        <path d="M18.4 5l1.5 1.6-1.5 1.6-1.5-1.6z"/><path d="M18.4 15l1.5 1.6-1.5 1.6-1.5-1.6z"/>
+      </svg>
+      <span data-i18n="nav.build">自己选</span>
+    </button>
+    <a class="navset" href="settings.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+        <path d="M4 7h16M4 17h16"/>
+        <circle cx="9" cy="7" r="2.1"/><circle cx="15.5" cy="17" r="2.1"/>
+      </svg>
+      <span data-i18n="nav.settings">设置</span>
+    </a>
+  </div>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet">
+  <h3 data-i18n="sheet.title">加入一样东西</h3>
+  <p class="hint" data-i18n="sheet.hint"></p>
+  <video class="cam" id="cam" playsinline muted autoplay></video>
+  <img class="shotpreview" id="shot" alt="刚拍的照片">
+  <div class="row" style="margin-bottom:10px">
+    <button class="btn quiet" id="snapBtn" data-i18n="sheet.cam">打开相机</button>
+    <button class="btn quiet" id="flipBtn" style="display:none" data-i18n="sheet.flip">换镜头</button>
+  </div>
+  <div class="zoomrow" id="zoomRow">
+    <span><span data-i18n="sheet.zoom">焦距</span> <b id="zoomLbl">1×</b></span>
+    <input type="range" id="zoom" min="1" max="8" step="0.1" value="1">
+  </div>
+  <button class="btn quiet" id="scanBtn" style="display:none;margin-bottom:10px" data-i18n="sheet.scan">扫商品条码</button>
+  <p class="cammsg" id="camMsg" data-i18n="sheet.camMsg"></p>
+  <div class="grid" id="picks"></div>
+  <div class="qtyrow">
+    <span data-i18n="sheet.qty">这次带回来几份</span>
+    <span class="step2">
+      <button type="button" id="qMinus">−</button>
+      <span id="qtyLbl">1 份</span>
+      <button type="button" id="qPlus">＋</button>
+    </span>
+  </div>
+  <div class="field">
+    <span id="daysLbl">3 天后</span>
+    <input type="range" id="days" min="1" max="60" value="3">
+  </div>
+  <button class="btn primary" id="saveBtn" data-i18n="sheet.save">加进冰箱</button>
+  <button class="btn quiet" id="cancelBtn" style="margin-top:8px" data-i18n="sheet.cancel">取消</button>
+</div>
+<div class="cook" id="cook">
+  <div class="ck-top"><span data-i18n="cook.title">做饭模式</span> · <b id="ck-name">菜名</b><button id="ck-close">✕</button></div>
+  <div class="ck-body">
+    <div class="ck-icon" id="ck-icon"></div>
+    <div class="ck-text" id="ck-text">…</div>
+    <div class="ck-count" id="ck-count">1 / 5</div>
+  </div>
+  <div class="ck-bar">
+    <button id="ck-prev" data-i18n="cook.prev">上一步</button>
+    <button id="ck-next" data-i18n="cook.next">下一步</button>
+  </div>
+  <button class="btn primary ck-done" id="ck-done" data-i18n="cook.done">做完了 · 扣减库存</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="data.js?v=20261029-10"></script>
+<script src="icons.js?v=20261029-10"></script>
+<script src="sync.js?v=20261029-10"></script>
+<script src="logic.js?v=20261029-10"></script>
+<script src="i18n.js?v=20261029-10"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+let items  = (() => {
+  const m = FD.migrate(FD.items());
+  const merged = FD.mergeItems(m.items);
+  if (m.changed || merged.length !== m.items.length) FD.saveItems(merged);
+  return merged;
+})();
+let goal   = FD.settings();
+let pantry = FD.pantry();
+let picked = null, pendingDays = 3, pendingQty = 1, stream = null;
+let cookRecipe = null, cookStep = 0, lastUndo = null;
+let discFilter = "all", buildPicks = new Set();
+
+const uid = () => Math.random().toString(36).slice(2, 9);
+const today = () => FD.localDate();
+const food = id => FD.byId[id] || {cn: id, name: id};
+const cnOf = id => I18N.foodName(id);
+
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove("on"), 1800);
+}
+
+/* ---------- fibre bucket (inferred, not measured) ---------- */
+const FIBRE = new Set(["greens","broccoli","eggplant","mushroom","carrot","tomato","onion","chili","potato"]);
+const highFibre = r => r.needs.some(n => FIBRE.has(n));
+
+/* ============ view switching ============ */
+const TITLES = {fridge:"title.fridge", discover:"title.discover", build:"title.build"};
+const t = (k, v) => I18N.t(k, v);
+function show(view){
+  $$(".view").forEach(v => v.classList.toggle("on", v.id === "view-" + view));
+  $$(".nav button").forEach(b => b.classList.toggle("on", b.dataset.view === view));
+  $("#pageTitle").textContent = t(TITLES[view]);
+  window.scrollTo({top:0});
+  if(view === "discover") renderDiscover();
+  if(view === "build") renderBuild();
+}
+$$(".nav button").forEach(b => b.addEventListener("click", () => show(b.dataset.view)));
+
+/* ============ view 1: fridge ============ */
+function expiryClass(d){ return d <= 2 ? "urgent" : d <= 5 ? "warn" : ""; }
+function expiryText(d){ return d <= 0 ? t("fridge.today") : (d === 1 ? t("fridge.oneDay") : t("fridge.left", {n: d})); }
+
+function renderItems(){
+  const box = $("#items"); box.innerHTML = "";
+  items.slice().sort((a,b)=>FD.daysLeftOf(a)-FD.daysLeftOf(b)).forEach(it=>{
+    const d = FD.daysLeftOf(it);
+    const el = document.createElement("div");
+    el.className = "chip " + expiryClass(d);
+    const q = (it.qty == null ? 1 : it.qty);
+    el.innerHTML = `${window.FD_ICON(it.cat,22)}<span>${cnOf(it.cat)}</span>
+      ${q > 1 ? `<span class="q">×${q}</span>` : ""}
+      <span class="d">${expiryText(d)}</span>
+      <button aria-label="remove" data-del="${it.id}">×</button>`;
+    box.appendChild(el);
+  });
+  $("#cnt").textContent = t("fridge.count", {n: items.length});
+  $("#emptyNote").style.display = items.length ? "none" : "block";
+}
+
+function reasons(r){
+  const out = [];
+  if(r.used.length){
+    out.push(t("card.whyUses", {items: r.used.map(i=>{
+      const d = FD.daysLeftOf(i);
+      return `<b>${cnOf(i.cat)}</b> (${d<=0?t("days.today"):t("days.n",{n:d})})`;
+    }).join(I18N.getLang()==="en" ? ", " : "、")}));
+  }
+  if(r.greensBonus) out.push(t("card.whyGreens"));
+  if(r.recipe.minutes <= goal.maxMinutes) out.push(t("card.whyTime", {n: r.recipe.minutes}));
+  else out.push(t("card.whySlow", {n: r.recipe.minutes, max: goal.maxMinutes}));
+  if(r.status === "shop1") out.push(t("card.whyGap"));
+  return out;
+}
+
+function pantryLine(missingIds){
+  const names = missingIds.map(id => {
+    const p = FD.pantryById[id] || {};
+    const label = I18N.getLang() === "en" ? (p.name || id) : (p.cn || id);
+    return `<span class="ptog" data-pantry="${id}">${label}</span>`;
+  }).join("");
+  return `<div class="pantryline">${t("card.pantry")}${names}<br><span style="font-size:12px">${t("card.pantryHint")}</span></div>`;
+}
+
+function renderResult(list){
+  const box = $("#result");
+  const usable = list.filter(r => r.status !== "blocked");
+  if(!usable.length){
+    box.innerHTML = `<div class="card"><h2>${t("disc.none")}</h2>
+      <p class="empty">${t("disc.noneHint")}</p></div>`;
+    return;
+  }
+  const top = usable[0], alts = usable.slice(1,3);
+  box.innerHTML = `
+    <div class="verdict ${top.status==="shop1"?"amber":""}">
+      <div class="kicker">${top.status==="shop1" ? t("card.shop1") : t("card.tonight")}</div>
+      <h3>${I18N.recipeName(top.recipe)}</h3>
+      <div class="meta">
+        <span class="badge">${t("card.min", {n: top.recipe.minutes})}</span>
+        ${top.recipe.kcal?`<span class="badge">${top.recipe.kcal} kcal</span>`:""}
+        <span class="badge">${top.recipe.greens?t("card.greens"):t("card.noGreens")}</span>
+      </div>
+    </div>
+    ${top.status==="shop1"?`<div class="shop">${t("card.missing")}<b>${FD.shoppingHint(top)}</b><br>${t("card.missingHint")}</div>`:""}
+    <div class="why">
+      <b>${t("card.why")}</b>
+      <ul>${reasons(top).map(r=>`<li>${r}</li>`).join("")}</ul>
+      <ol class="steps">${I18N.recipeSteps(top.recipe).map(s=>`<li>${s}</li>`).join("")}</ol>
+      ${top.pantryMissing.length?pantryLine(top.pantryMissing):""}
+      <div class="srcline">${t("card.src")}<a href="${top.recipe.src}" target="_blank" rel="noopener">HowToCook</a> · ${t("card.srcNote")}</div>
+      <button class="btn primary" style="margin-top:12px" data-cook="${top.recipe.id}">${t("disc.cook")}</button>
+    </div>
+    ${alts.length?`<div class="card"><h2>${t("disc.other")} <span class="count">${t("disc.otherSub")}</span></h2>
+      ${alts.map(a=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)">
+        <div><div>${I18N.recipeName(a.recipe)} ${a.status==="shop1"?`<span style="color:#b26a00;font-size:12px">· ${t("disc.gapN",{n:1})}</span>`:""}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${t("card.min",{n:a.recipe.minutes})}${a.recipe.kcal?` · ${a.recipe.kcal} kcal`:""}${a.recipe.greens?" · "+t("card.greens"):""}</div></div>
+        <button class="go" data-pick="${a.recipe.id}" style="border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;font-size:13px;color:var(--green);font-family:inherit">${t("card.seeThis")}</button>
+      </div>`).join("")}
+    </div>`:""}`;
+
+  box.querySelectorAll("[data-pick]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const r = list.find(x=>x.recipe.id===b.dataset.pick);
+      if(r){ renderResult([r,...list.filter(x=>x!==r)]); window.scrollTo({top:0,behavior:"smooth"}); }
+    });
+  });
+  box.querySelectorAll("[data-cook]").forEach(b=>b.addEventListener("click", ()=> openCook(b.dataset.cook)));
+  box.querySelectorAll("[data-pantry]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const id = b.dataset.pantry;
+      pantry = pantry.includes(id) ? pantry.filter(x=>x!==id) : [...pantry, id];
+      FD.savePantry(pantry); renderResult(FD.decide(items, goal));
+    });
+  });
+}
+
+/* ============ view 2: discover ============ */
+function recipeCard(r, opts){
+  opts = opts || {};
+  const sep = I18N.getLang()==="en" ? ", " : "、";
+  const used = r.used.map(i=>`${cnOf(i.cat)} (${t("days.n",{n:FD.daysLeftOf(i)})})`).join(sep);
+  const missing = r.missing.length ? `<span class="tg a">${t("disc.gapN",{n:r.missing.length})}: ${r.missing.map(cnOf).join(sep)}</span>` : "";
+  return `<div class="rc">
+    <h4>${I18N.recipeName(r.recipe)}</h4>
+    <div class="tags">
+      <span class="tg">${t("card.min",{n:r.recipe.minutes})}</span>
+      ${r.recipe.kcal?`<span class="tg">${r.recipe.kcal} kcal</span>`:""}
+      ${r.recipe.greens?`<span class="tg g">${t("card.greens")}</span>`:""}
+      ${highFibre(r.recipe)?`<span class="tg">${I18N.getLang()==="en"?"higher fibre":"纤维较高"}</span>`:""}
+      ${missing}
+      ${r.status==="ready"?`<span class="tg g">${t("disc.ready1")}</span>`:""}
+    </div>
+    ${used?`<p class="uses">${t("disc.uses")}${used}</p>`:""}
+    <details><summary>${t("disc.steps")}</summary><ol>${I18N.recipeSteps(r.recipe).map(s=>`<li>${s}</li>`).join("")}</ol>
+      <div class="src">${t("card.src")}<a href="${r.recipe.src}" target="_blank" rel="noopener">HowToCook</a> · ${t("card.srcNote")}</div>
+    </details>
+    <button class="go" data-take="${r.recipe.id}">${t("disc.cook")}</button>
+  </div>`;
+}
+
+function renderDiscover(){
+  let list = FD.decide(items, goal).filter(r => r.status !== "blocked");
+  if(discFilter === "ready")  list = list.filter(r => r.status === "ready");
+  if(discFilter === "shop1")  list = list.filter(r => r.status === "shop1");
+  if(discFilter === "greens") list = list.filter(r => r.recipe.greens);
+  if(discFilter === "light")  list = list.filter(r => (r.recipe.kcal||0) <= 500);
+  const box = $("#discList");
+  box.innerHTML = list.length
+    ? list.map(r=>recipeCard(r)).join("")
+    : `<div class="card"><p class="empty">${t("disc.empty")}</p></div>`;
+  box.querySelectorAll("[data-take]").forEach(b=>b.addEventListener("click", ()=> openCook(b.dataset.take)));
+}
+
+/* ============ view 3: build ============ */
+function renderPicker(){
+  const box = $("#picker");
+  const have = [...new Set(items.map(i => i.cat))];
+  box.innerHTML = have.length
+    ? have.map(cat => `<button class="pf ${buildPicks.has(cat)?"on":""}" data-cat="${cat}">
+        ${window.FD_ICON(cat,20)}${cnOf(cat)}</button>`).join("")
+    : `<p class="empty">${t("build.pickFirst")}</p>`;
+  box.querySelectorAll("[data-cat]").forEach(b=>b.addEventListener("click", ()=>{
+    const c = b.dataset.cat;
+    buildPicks.has(c) ? buildPicks.delete(c) : buildPicks.add(c);
+    renderBuild();
+  }));
+  $("#pickCount").textContent = buildPicks.size ? t("build.picked",{n:buildPicks.size}) : t("build.none");
+}
+
+function renderBuild(){
+  renderPicker();
+  const kcalMax = +$("#kcal").value, minsMax = +$("#mins").value;
+  const mustGreens = $("#mustGreens").checked, wantFibre = $("#highFiber").checked;
+  $("#kcalLbl").textContent = kcalMax + " kcal";
+  $("#minLbl").textContent = minsMax + " 分钟";
+
+  let list = FD.decide(items, goal).filter(r => r.status !== "blocked");
+  // 只在"想吃的"里筛：菜必须用到所选食材（没有选就不限）
+  if(buildPicks.size){
+    list = list.filter(r => r.recipe.needs.some(n => buildPicks.has(n)));
+  }
+  list = list.filter(r => (r.recipe.kcal || 0) <= kcalMax && r.recipe.minutes <= minsMax);
+  if(mustGreens) list = list.filter(r => r.recipe.greens);
+  if(wantFibre)  list = list.filter(r => highFibre(r.recipe));
+
+  const box = $("#buildList");
+  box.innerHTML = (list.length
+    ? list.map(r=>recipeCard(r)).join("")
+    : `<div class="card"><p class="empty">${t("build.empty")}</p></div>`)
+    + `<p class="note" style="text-align:center">${t("build.total",{n:list.length})}</p>`;
+  box.querySelectorAll("[data-take]").forEach(b=>b.addEventListener("click", ()=> openCook(b.dataset.take)));
+}
+$("#kcal").addEventListener("input", renderBuild);
+$("#mins").addEventListener("input", renderBuild);
+$("#mustGreens").addEventListener("change", renderBuild);
+$("#highFiber").addEventListener("change", renderBuild);
+$("#clearPick").addEventListener("click", ()=>{ buildPicks.clear(); renderBuild(); });
+
+/* ---------- step pictograms: one action mark per step ---------- */
+const STEP_ICONS = {
+  cut:`<path d="M4 20l9-9M13 11l4-4a2.4 2.4 0 013.4 3.4l-4 4z"/><path d="M9 15l-2 2"/>`,
+  pan:`<path d="M3.6 11.4h11.2a1.6 1.6 0 011.6 1.6 5.6 5.6 0 01-5.6 5.6H8.8a5.2 5.2 0 01-5.2-5.2z"/><path d="M16.4 12.4H21"/>`,
+  pot:`<path d="M4 10.6h16v3.2a5 5 0 01-5 5H9a5 5 0 01-5-5z"/><path d="M7.6 7.4c0-1 1-1.6 1-2.6M12 7.4c0-1 1-1.6 1-2.6M16.4 7.4c0-1 1-1.6 1-2.6"/>`,
+  season:`<path d="M10.2 9.6h3.6l.8 10.4H9.4z"/><path d="M10.8 6.6h2.4v3h-2.4z"/><path d="M14.6 8l3.4-2.6"/>`,
+  wash:`<path d="M12 4.4c3 3.6 4.6 5.8 4.6 8a4.6 4.6 0 01-9.2 0c0-2.2 1.6-4.4 4.6-8z"/><path d="M9.4 13.4c.4 1.2 1.3 1.9 2.6 1.9"/>`,
+  plate:`<circle cx="12" cy="12" r="7.4"/><circle cx="12" cy="12" r="3.6"/>`,
+  dot:`<circle cx="12" cy="12" r="3"/>`
+};
+function stepIcon(text){
+  const t = text || "";
+  let k = "dot";
+  if (/切|片|丁|丝|段|拍|剁|去骨|滚刀/.test(t)) k = "cut";
+  else if (/洗|泡|冲洗/.test(t)) k = "wash";
+  else if (/炒|煎|炸|煸|爆香|翻炒|收汁/.test(t)) k = "pan";
+  else if (/煮|蒸|炖|烧|焖|焯|水开|锅.*水/.test(t)) k = "pot";
+  else if (/腌|调|酱|盐|糖|油|码味|拌匀|淀粉/.test(t)) k = "season";
+  else if (/盛|装|摆|出锅|淋/.test(t)) k = "plate";
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+    stroke-linecap="round" stroke-linejoin="round">${STEP_ICONS[k]}</svg>`;
+}
+
+/* ---------- cooking mode ---------- */
+function openCook(recipeId){
+  cookRecipe = FD.RECIPES.find(r => r.id === recipeId);
+  if(!cookRecipe) return;
+  cookStep = 0;
+  $("#ck-name").textContent = I18N.recipeName(cookRecipe);
+  renderCook();
+  $("#cook").classList.add("on");
+}
+function renderCook(){
+  const steps = I18N.recipeSteps(cookRecipe);
+  $("#ck-icon").innerHTML = stepIcon(steps[cookStep]);
+  $("#ck-text").textContent = steps[cookStep];
+  $("#ck-count").textContent = `${cookStep + 1} / ${steps.length}`;
+  $("#ck-prev").disabled = cookStep === 0;
+  $("#ck-next").disabled = cookStep >= steps.length - 1;
+  $("#ck-next").textContent = cookStep >= steps.length - 1 ? t("cook.last") : t("cook.next");
+}
+$("#ck-prev").addEventListener("click", ()=>{ if(cookStep > 0){ cookStep--; renderCook(); } });
+$("#ck-next").addEventListener("click", ()=>{ if(cookStep < cookRecipe.steps.length - 1){ cookStep++; renderCook(); } });
+$("#ck-close").addEventListener("click", ()=> $("#cook").classList.remove("on"));
+
+$("#ck-done").addEventListener("click", ()=>{
+  const before = items.slice();
+  const res = FD.consume(items, cookRecipe);
+  lastUndo = {items: before, dish: cookRecipe.name};
+  items = res.items;
+  FD.saveItems(items);
+  FD.log("take", cookRecipe.id);
+  renderItems();
+  $("#cook").classList.remove("on");
+  const usedTxt = res.used.map(u => u.left === 0 ? t("undo.usedUp",{n:cnOf(u.cat),q:u.qty}) : t("undo.left",{n:cnOf(u.cat),q:u.qty,left:u.left})).join(I18N.getLang()==="en" ? ", " : "、");
+  $("#undoText").textContent = t("undo.done", {dish: I18N.recipeName(cookRecipe), items: usedTxt || "-"});
+  $("#undoBar").classList.add("on");
+  if(cookStep >= 0) show("fridge");
+});
+$("#undoBtn").addEventListener("click", ()=>{
+  if(!lastUndo) return;
+  items = lastUndo.items; FD.saveItems(items); renderItems();
+  $("#undoBar").classList.remove("on");
+  toast(t("undo.ok"));
+  lastUndo = null;
+});
+
+/* ---------- add sheet ---------- */
+function openSheet(){
+  $("#scrim").classList.add("on"); $("#sheet").classList.add("on");
+  picked = null;
+  const g = $("#picks"); g.innerHTML = "";
+  FD.CATALOG.forEach(c=>{
+    const b = document.createElement("button");
+    b.className = "pick"; b.type = "button";
+    b.innerHTML = window.FD_ICON(c.id,22) + `<span>${I18N.foodName(c.id)}</span><small>${I18N.getLang()==="en" ? c.cn : c.name}</small>`;
+    b.addEventListener("click", ()=>{
+      picked = c; pendingDays = c.days;
+      g.querySelectorAll(".pick").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on");
+      $("#days").value = c.days; $("#daysLbl").innerHTML = t("sheet.keepFor",{n:c.days});
+      pendingQty = 1; paintQty();
+    });
+    g.appendChild(b);
+  });
+  $("#days").value = 3; $("#daysLbl").innerHTML = t("sheet.keepFor",{n:3}); pendingDays = 3;
+  pendingQty = 1; paintQty();
+  shotURL = null; $("#shot").classList.remove("on"); $("#snapBtn").textContent = t("sheet.cam");
+  if("BarcodeDetector" in window) $("#scanBtn").style.display = "none";
+}
+const unitWord = () => I18N.getLang()==="en" ? "portion" : "份";
+function paintQty(){
+  const unit = picked ? I18N.unit(FD.unitOf(picked.id)) : unitWord();
+  $("#qtyLbl").textContent = t("sheet.qtyUnit",{n:pendingQty, unit});
+}
+$("#qMinus").addEventListener("click", ()=>{ pendingQty = Math.max(1, pendingQty - 1); paintQty(); });
+$("#qPlus").addEventListener("click", ()=>{ pendingQty = Math.min(99, pendingQty + 1); paintQty(); });
+
+function closeSheet(){
+  $("#scrim").classList.remove("on"); $("#sheet").classList.remove("on"); stopCam();
+}
+let cams = [], camPos = 0, camTrack = null, shotURL = null;
+
+async function startCam(preferIdex){
+  try{
+    const constraints = {
+      video: {
+        facingMode: {ideal: "environment"},
+        width: {ideal: 1920}, height: {ideal: 1080}
+      }, audio: false
+    };
+    if (camPos && cams[camPos] && cams[camPos].deviceId) {
+      constraints.video = {deviceId: {exact: cams[camPos].deviceId}, width:{ideal:1920}, height:{ideal:1080}};
+    }
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
+    camTrack = stream.getVideoTracks()[0];
+    const v = $("#cam");
+    v.srcObject = stream; v.classList.add("on"); $("#shot").classList.remove("on");
+    await v.play();
+
+    // 列出所有镜头（第一次授权后 label 才可读），让她能避开默认的微距镜头
+    const devs = await navigator.mediaDevices.enumerateDevices();
+    cams = devs.filter(d => d.kind === "videoinput");
+    $("#flipBtn").style.display = cams.length > 1 ? "flex" : "none";
+    $("#flipBtn").textContent = t("sheet.flip") + " (" + (camPos % Math.max(1, cams.length) + 1) + "/" + cams.length + ")";
+
+    // 支不支持数码变焦（Android Chrome 支持，iOS Safari 通常不支持）
+    const caps = camTrack.getCapabilities ? camTrack.getCapabilities() : {};
+    if (caps && caps.zoom) {
+      $("#zoomRow").classList.add("on");
+      const z = $("#zoom");
+      z.min = caps.zoom.min; z.max = caps.zoom.max; z.step = caps.zoom.step || 0.1;
+      z.value = caps.zoom.min;
+      $("#zoomLbl").textContent = caps.zoom.min + "×";
+    } else {
+      $("#zoomRow").classList.remove("on");
+    }
+    $("#snapBtn").textContent = t("sheet.shoot");
+    $("#camMsg").textContent = t("sheet.camReady");
+    if ("BarcodeDetector" in window) $("#scanBtn").style.display = "flex";
+  }catch(e){
+    $("#camMsg").textContent = t("sheet.camFail");
+  }
+}
+
+function stopCam(){
+  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream = null; }
+  camTrack = null;
+  $("#cam").classList.remove("on");
+  $("#zoomRow").classList.remove("on");
+}
+
+function snap(){
+  const v = $("#cam");
+  if(!v.videoWidth){ return; }
+  const c = document.createElement("canvas");
+  c.width = v.videoWidth; c.height = v.videoHeight;
+  c.getContext("2d").drawImage(v, 0, 0);
+  shotURL = c.toDataURL("image/jpeg", 0.85);
+  const img = $("#shot"); img.src = shotURL; img.classList.add("on");
+  stopCam();
+  $("#snapBtn").textContent = t("sheet.reshoot");
+  $("#camMsg").textContent = t("sheet.camDone");
+}
+
+/* 条码：只在支持的浏览器里给，不假装全都行 */
+async function scanBarcode(){
+  if(!shotURL || !("BarcodeDetector" in window)) return;
+  try{
+    const det = new BarcodeDetector({formats:["ean_13","ean_8","upc_a","upc_e","code_128"]});
+    const img = new Image(); img.src = shotURL; await img.decode();
+    const codes = await det.detect(img);
+    if(codes && codes.length){
+      $("#camMsg").textContent = "扫到了条码 " + codes[0].rawValue + " —— 商品名查询还没接；先在下面选品类。";
+      toast("条码：" + codes[0].rawValue);
+    } else {
+      $("#camMsg").textContent = "这张里没扫到条码。把包装上的条码放平再拍一次。";
+    }
+  }catch(e){
+    $("#camMsg").textContent = "条码识别失败：" + (e.message || e);
+  }
+}
+
+/* ---------- events ---------- */
+$("#addBtn").addEventListener("click", openSheet);
+$("#cancelBtn").addEventListener("click", closeSheet);
+$("#scrim").addEventListener("click", closeSheet);
+$("#snapBtn").addEventListener("click", ()=>{
+  if(shotURL){ shotURL = null; $("#shot").classList.remove("on"); startCam(); }
+  else if(stream){ snap(); }
+  else { startCam(); }
+});
+$("#flipBtn").addEventListener("click", ()=>{
+  camPos = (camPos + 1) % Math.max(1, cams.length);
+  stopCam(); startCam();
+});
+$("#zoom").addEventListener("input", async e=>{
+  if(!camTrack || !camTrack.applyConstraints) return;
+  const z = +e.target.value;
+  $("#zoomLbl").textContent = z.toFixed(1) + "×";
+  try{ await camTrack.applyConstraints({advanced:[{zoom:z}]}); }catch(err){}
+});
+$("#scanBtn").addEventListener("click", scanBarcode);
+$("#days").addEventListener("input", e=>{ pendingDays = +e.target.value; $("#daysLbl").innerHTML = t("sheet.keepFor",{n:pendingDays}); });
+
+$("#saveBtn").addEventListener("click", ()=>{
+  if(!picked){ toast(t("sheet.pickFirst")); return; }
+  const hh = FD.household();
+  const dup = items.find(i => i.cat === picked.id && FD.daysLeftOf(i) === pendingDays
+                              && (i.by || null) === (hh.members.length ? hh.members[0] : null));
+  if (dup) {
+    dup.qty = (dup.qty == null ? 1 : dup.qty) + pendingQty;   // 同一天到期的合成一份
+  } else {
+    items.push({id:uid(), cat:picked.id, name:picked.name, tag:picked.tag,
+                qty:pendingQty, unit:FD.unitOf(picked.id),
+                daysLeft:pendingDays, life:pendingDays, addedAt:today(),
+                by: hh.members.length ? hh.members[0] : null});
+  }
+  items = FD.mergeItems(items);
+  FD.saveItems(items); renderItems(); closeSheet();
+  toast(t("toast.added", {name: I18N.foodName(picked.id), n: pendingQty, days: pendingDays}));
+});
+
+$("#decideBtn").addEventListener("click", ()=>{
+  renderResult(FD.decide(items, goal));
+  const r = $("#result"); if(r) window.scrollTo({top:r.offsetTop - 70, behavior:"smooth"});
+});
+
+$("#demoBtn").addEventListener("click", ()=>{
+  const mk = (cat, days, qty) => { const f = FD.byId[cat];
+    return {id:uid(), cat, name:f.name, tag:f.tag, qty:qty||1, unit:FD.unitOf(cat),
+            daysLeft:days, life:days, addedAt:today()}; };
+  items = [mk("pork",3,1), mk("chili",7,3), mk("egg",21,10), mk("greens",4,1), mk("rice",3,2), mk("tofu",4,1)];
+  FD.saveItems(items); renderItems();
+  toast(t("toast.demo"));
+});
+
+$("#items").addEventListener("click", e=>{
+  const b = e.target.closest("[data-del]"); if(!b) return;
+  items = items.filter(i=>i.id!==b.dataset.del);
+  FD.saveItems(items); renderItems();
+});
+
+$("#discFilters").addEventListener("click", e=>{
+  const b = e.target.closest("[data-f]"); if(!b) return;
+  discFilter = b.dataset.f;
+  $$("#discFilters .f").forEach(x=>x.classList.toggle("on", x===b));
+  renderDiscover();
+});
+
+/* ---------- keep the clock honest ----------
+   剩余天数是按日期算的，但如果页面一直开着（装到主屏的 PWA 就是），
+   就不会重算。每分钟 + 每次回到前台都重算一次。 */
+function refreshClock(){
+  renderItems();
+  if($("#view-discover").classList.contains("on")) renderDiscover();
+  if($("#view-build").classList.contains("on")) renderBuild();
+}
+setInterval(refreshClock, 60000);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) refreshClock(); });
+window.addEventListener("focus", refreshClock);
+
+/* ---------- language ---------- */
+function applyLang(){
+  I18N.apply();
+  $("#toast").textContent = "";      // 别让上一句中文留在 DOM 里
+  $("#langBtn").textContent = I18N.getLang() === "en" ? "EN" : "中";
+  const active = $$(".nav button").find(b => b.classList.contains("on"));
+  const view = active ? active.dataset.view : "fridge";
+  $("#pageTitle").textContent = t(TITLES[view]);
+  $("#qtyLbl") && paintQty();
+  renderItems();
+  if(view === "discover") renderDiscover();
+  if(view === "build") renderBuild();
+  if($("#result").innerHTML) renderResult(FD.decide(items, goal));
+  $("#daysLbl") && ($("#daysLbl").innerHTML = t("sheet.keepFor", {n: pendingDays}));
+}
+$("#langBtn").addEventListener("click", ()=>{
+  I18N.setLang(I18N.getLang() === "en" ? "zh" : "en");
+  applyLang();
+});
+
+/* ---------- boot ---------- */
+applyLang();
+// 有后端就跟着云端走：别的手机加的东西 5 秒内出现在这里
+if (FD.cloudOn()) {
+  items = FD.items();
+  FD.sync.start(() => { items = FD.items(); renderItems();
+    if ($("#result").innerHTML) renderResult(FD.decide(items, goal)); });
+}
+// 从设置页底部导航跳回来时，直接落到对应标签
+(function(){
+  const h = (location.hash || "").replace("#","");
+  if(["fridge","discover","build"].includes(h)) show(h);
+})();
+// 从设置页底部导航跳回来时，直接落到对应标签
+(function(){
+  const h = (location.hash || "").replace("#","");
+  if(["fridge","discover","build"].includes(h)) show(h);
+})();
+if(!items.length) setTimeout(()=>toast(t("toast.tip")), 900);
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
+</script>
+</body>
+</html>

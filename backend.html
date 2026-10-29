@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>加后端：用什么、怎么加</title>
+<style>
+  :root{ --bg:#f6f7f5; --card:#fff; --ink:#16211c; --muted:#6b7a72; --line:#e2e7e3;
+         --green:#0f7a5a; --green-soft:#e6f2ed; --amber:#b26a00; --amber-soft:#fdf1e0; --red:#b3261e; --red-soft:#fbe9e7; }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);line-height:1.65;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;-webkit-text-size-adjust:100%}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 16px 60px}
+  h1{font-size:21px;margin:0 0 6px;letter-spacing:-.02em}
+  .sub{font-size:13.5px;color:var(--muted);margin:0 0 18px}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:26px 0 10px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  code{background:#eef2ef;padding:1px 5px;border-radius:5px;font-size:12.5px}
+  pre{background:#111a16;color:#d9e8df;padding:14px;border-radius:12px;overflow:auto;font-size:12px;line-height:1.55}
+  pre code{background:none;color:inherit;padding:0}
+  ul,ol{margin:8px 0 0;padding-left:20px} li{margin:6px 0;font-size:13.5px}
+  p{font-size:13.5px;margin:8px 0}
+  .ok{color:var(--green);font-weight:600} .warn{color:var(--amber);font-weight:600} .bad{color:var(--red);font-weight:600}
+  .tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:999px;background:var(--green-soft);color:#0b5c44;font-weight:600}
+  .tag.a{background:var(--amber-soft);color:#7a4a05} .tag.r{background:var(--red-soft);color:#8f231c}
+  .note{font-size:12.5px;color:var(--muted)}
+  .step{counter-increment:step}
+  .step::before{content:counter(step);display:inline-grid;place-items:center;width:20px;height:20px;
+    background:#0f7a5a;color:#fff;border-radius:6px;font-size:11px;font-weight:700;margin-right:8px;vertical-align:-3px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>加后端：用什么、怎么加</h1>
+  <p class="sub">结论先说：用 <b>Supabase</b>（免费、不用自己写服务器）。下面是三选一的对比、建表 SQL、以及前端只改哪四行。</p>
+
+  <h2>一、后端只解决三件事</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>要做的事</th><th>没有后端时</th><th>有后端后</th></tr></thead>
+      <tbody>
+        <tr><td>两台手机看同一个冰箱（家庭码生效）</td><td class="bad">各自的 localStorage，互相看不见</td><td class="ok">同一张表，谁加的都看得到</td></tr>
+        <tr><td>墨水屏读到手机加的东西</td><td class="bad">只有同机同浏览器</td><td class="ok">屏每 5 秒拉一次</td></tr>
+        <tr><td>采纳率（✓/✕）汇总</td><td class="warn">只在本机，换个手机就没了</td><td class="ok">所有人的按键汇总成一个数</td></tr>
+      </tbody>
+    </table>
+    <p class="note">菜谱、模型、网页<b>都不需要</b>后端 —— 那些放静态文件就行（见 <a href="stack.html">架构页</a>）。</p>
+  </div>
+
+  <h2>二、三个候选，为什么选第一个</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>服务</th><th>是什么</th><th>免费额度</th><th>适合谁</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>Supabase</b><br><span class="tag">推荐</span></td>
+          <td>托管 Postgres + 自动生成 REST 接口 + 匿名登录</td>
+          <td class="ok">2 个项目、500 MB 数据库、实时推送免费</td>
+          <td>课程项目、要快、要英文文档、不想写服务端代码</td>
+        </tr>
+        <tr>
+          <td><b>Firebase</b>（Firestore）</td>
+          <td>Google 的文档数据库</td>
+          <td class="ok">1 GB 存储、每日读写配额</td>
+          <td>要做原生 App、以后想接推送</td>
+        </tr>
+        <tr>
+          <td><b>腾讯云开发 CloudBase</b><br><span class="tag a">如果用户在内地</span></td>
+          <td>微信生态原生，境内速度快</td>
+          <td class="warn">有免费额度，按月重置</td>
+          <td>最终要给妈妈那一代人在内地用 —— 访问速度和微信登录都更合适</td>
+        </tr>
+      </tbody>
+    </table>
+    <p><b>为什么不是"自己写个服务器"</b>：你要的是三张表和一个接口，写服务器等于给自己找运维。Supabase 把这三张表直接暴露成 REST，前端 <code>fetch</code> 就完事。</p>
+  </div>
+
+  <h2>三、四步接上（大概半天）</h2>
+  <div class="card">
+    <ol>
+      <li class="step">去 <code>supabase.com</code> 注册（GitHub 账号一键登录），新建一个 project，区域选 Singapore。</li>
+      <li class="step">进 <b>SQL Editor</b>，把下面这段粘进去执行 —— 三张表和权限一次建好。</li>
+      <li class="step">进 <b>Project Settings → API</b>，复制 <code>Project URL</code> 和 <code>anon public</code> 两个值。</li>
+      <li class="step">打开 App → <b>设置 → 云端同步</b>，把两个值粘进去，点「保存并连接」—— 连接成功会显示"云端这个家庭现有 N 样东西"。<br><span class="note">（也可以写死在 <code>sync.js</code> 顶部两行，这样每台设备都不用再填。）</span></li>
+    </ol>
+    <pre><code>-- 一个家庭 = 一个家庭码；物品挂在家庭下
+create table households (
+  code        text primary key,           -- 6 位家庭码，如 DTSU6U
+  created_at  timestamptz default now()
+);
+
+create table items (
+  id          text primary key,
+  household   text references households(code) on delete cascade,
+  cat         text not null,              -- tofu / greens / egg …
+  name        text,
+  tag         text,
+  qty         int default 1,
+  unit        text,
+  life        int,                        -- 保质天数
+  days_left   int,
+  added_at    date,
+  by          text,                       -- 谁放的
+  updated_at  timestamptz default now()
+);
+
+create table logs (                        -- ✓/✕ 采纳记录
+  id          bigserial primary key,
+  household   text,
+  action      text check (action in ('take','skip')),
+  recipe_id   text,
+  at          timestamptz default now()
+);
+
+-- 打开行级权限（Supabase 默认关，必须开）
+alter table items  enable row level security;
+alter table logs   enable row level security;
+
+-- 课程演示用：谁拿到 anon key 谁都能读写这个家庭。
+-- 真上线要换成 auth.uid() 绑定家庭，见文末。
+create policy "demo read"  on items for select using (true);
+create policy "demo write" on items for insert with check (true);
+create policy "demo upd"   on items for update using (true);
+create policy "demo del"   on items for delete using (true);
+create policy "demo log"   on logs  for insert with check (true);
+create policy "demo logr"  on logs  for select using (true);</code></pre>
+    <p class="note">这段 SQL 是"演示级"权限：拿到 anon key 的人都能读写。<b>交作业够用，但不能上线</b> —— 上线要接 Supabase 的匿名登录，把策略改成 <code>auth.uid()</code> 属于哪个家庭。</p>
+  </div>
+
+  <h2>四、前端要改的地方（已经写好了）</h2>
+  <div class="card">
+    <p><code>sync.js</code> 已经放在仓库里，是个"关闭状态"的同步层：URL/KEY 为空时所有函数直接返回 <code>disabled</code>，App 完全不受影响。填上两个值以后，只要在四个地方换成它：</p>
+    <table>
+      <thead><tr><th>原来的</th><th>换成</th><th>在哪</th></tr></thead>
+      <tbody>
+        <tr><td><code>FD.saveItems(list)</code></td><td><code>SYNC.add(code, item)</code></td><td>加一样东西 / 闸机确认</td></tr>
+        <tr><td><code>FD.consume()</code> 之后</td><td><code>SYNC.update(code, id, {qty})</code></td><td>做饭扣减</td></tr>
+        <tr><td>页面加载 <code>FD.items()</code></td><td><code>await SYNC.pull(code)</code></td><td>App / 墨水屏 / 圆片</td></tr>
+        <tr><td><code>FD.log()</code></td><td><code>SYNC.log(code, "take", id)</code></td><td>✓ / ✕ 按钮</td></tr>
+      </tbody>
+    </table>
+    <pre><code>// 一旦同步层启用，屏子和别的手机就这样跟着动
+SYNC.watch(householdCode, rows =&gt; {
+  items = rows;
+  renderItems();          // 别的手机加的东西，5 秒内出现在这里
+}, 5000);</code></pre>
+    <p class="note">用纯 <code>fetch</code> 调 Supabase 的 REST 接口，不装 SDK、不需要构建步骤 —— 和现在这个站一样是静态文件。</p>
+  </div>
+
+  <h2>五、成本与风险</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>项</th><th>数字</th></tr></thead>
+      <tbody>
+        <tr><td>钱</td><td class="ok">0 元（免费额度：2 个项目、500 MB、每月 5 GB 流量）</td></tr>
+        <tr><td>一个家庭的用量</td><td class="ok">几十 KB —— 免费额度的 0.01%</td></tr>
+        <tr><td>时间</td><td class="warn">建项目 + 建表 ≈ 20 分钟；前端接线 ≈ 2 小时；调试权限 ≈ 1 小时</td></tr>
+        <tr><td>风险</td><td class="bad">anon key 是公开的（前端代码里谁都能看到）→ 演示级策略下别人可以改你的数据。课程项目无所谓，上线必须换策略</td></tr>
+      </tbody>
+    </table>
+    <p><b>如果用户主要在内地</b>：Supabase 的节点在国外，访问会慢（有时几秒）。那种情况改用 <b>腾讯云开发 CloudBase</b>，逻辑几乎一样（云数据库 + 匿名登录），但境内速度正常、还能一键接微信。</p>
+  </div>
+
+  <h2>六、我的建议：什么时候加</h2>
+  <div class="card">
+    <p><b>不要在周一之前加。</b>理由：现在这套东西是纯静态、零故障点，演示不会挂；加后端会引入"注册/密钥/权限/网络"四个新的失败点，而老师在台上最不想看到的就是"连不上"。</p>
+    <p>顺序应该是：<span class="tag">周一交 PPT</span> → <span class="tag a">交完当天接 Supabase</span> → <span class="tag">下一节课演示"两台手机同一个冰箱"</span>。那时候"家庭码真正生效"才是一个能演的东西，而不是一句话。</p>
+    <p class="note">如果你希望我现在就把接线做完（留空密钥、填上就生效），说一声 —— 大概要动四个函数，我会保持"没填密钥时和现在完全一样"。</p>
+  </div>
+</div>
+</body>
+</html>

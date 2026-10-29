@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fridge Display — 296×128</title>
+<style>
+  :root{
+    --page:#f2f4f1; --ink:#14110f; --paper:#f4f1ea; --line:#d9d3c6;
+    --red:#b3261e; --dim:#6d655b; --bezel:#e7e9e5; --bezel2:#d5d8d2;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--page);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;-webkit-text-size-adjust:100%}
+  .page{max-width:760px;margin:0 auto;padding:22px 18px 40px}
+  h1{font-size:19px;margin:0 0 4px;letter-spacing:-.01em}
+  .lede{font-size:13px;color:#5d6a62;line-height:1.55;margin:0 0 16px}
+  .lede code{background:#e8ece8;padding:1px 5px;border-radius:5px;font-size:12px}
+
+  .stage{display:flex;justify-content:center;margin:8px 0 6px}
+  .device{position:relative;background:linear-gradient(180deg,var(--bezel),var(--bezel2));border-radius:18px;
+    padding:14px 14px 12px;box-shadow:0 18px 40px rgba(20,17,15,.14),inset 0 1px 0 #fff}
+  .screenwrap{position:relative;background:#000;border-radius:6px;padding:2px;box-shadow:inset 0 2px 8px rgba(0,0,0,.55)}
+
+  /* ---------------- the real 296 x 128 canvas ---------------- */
+  .screen{width:296px;height:128px;background:var(--paper);overflow:hidden;position:relative;
+    transform-origin:top left;
+    background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.012) 0 1px,transparent 1px 3px)}
+  .scr{position:absolute;inset:0;padding:7px 9px 6px;display:none;grid-template-rows:auto 1fr auto;gap:3px}
+  .scr.on{display:grid}
+  .hd{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+    display:flex;justify-content:space-between;align-items:baseline;line-height:1}
+  .hd b{color:var(--ink);font-weight:700}
+  .body{display:flex;align-items:center;gap:8px;overflow:hidden}
+  .body > div{min-width:0}
+  .big{font-size:24px;line-height:1.03;font-weight:750;letter-spacing:-.015em}
+  .big.two{font-size:21px;line-height:1.1}
+  .plus{font-weight:600}
+  .pix{display:flex;flex-direction:column;gap:5px;flex:0 0 auto;color:var(--ink)}
+  .pix svg{display:block}
+  .ft{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;
+    font-size:9.5px;line-height:1.2;color:var(--dim)}
+  .ft b{color:var(--ink)}
+  .red{color:var(--red)}
+  .num{font-size:33px;font-weight:800;line-height:.86;letter-spacing:-.03em}
+  .unit{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;margin-left:5px}
+  .dots{display:flex;gap:3px;align-items:center;flex:0 0 auto}
+  .dots i{width:4px;height:4px;border-radius:50%;background:#c9c2b4;display:block}
+  .dots i.on{background:var(--ink)}
+  .bars{display:flex;gap:3px;margin-top:6px}
+  .bars span{width:10px;height:5px;background:#cdc6b8;border-radius:1px}
+  .bars span.k{background:var(--ink)}
+  .bars span.r{background:var(--red)}
+  .tick{font-size:9.5px;color:var(--dim);margin-top:6px;line-height:1.35}
+  .tick b{color:var(--ink)}
+  .flash{position:absolute;inset:0;display:none;place-items:center;background:var(--paper);text-align:center}
+  .flash.on{display:grid}
+  .flash b{font-size:20px;display:block;letter-spacing:-.01em}
+  .flash span{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+
+  /* ---------------- physical buttons ---------------- */
+  .keys{display:flex;justify-content:center;gap:10px;margin-top:12px;padding-top:11px;border-top:1px solid #cfd3cc}
+  .key{display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid #c6ccc4;background:#fff;
+    border-radius:12px;padding:8px 14px;font-size:11.5px;font-family:inherit;color:#1f2c26;cursor:pointer;min-width:74px}
+  .key span{font-size:15px;line-height:1}
+  .key:active{transform:translateY(1px)}
+  .key.ok{border-color:#0f7a5a;color:#0b5c44}
+  .key.no{border-color:#d9b3ae;color:#8f231c}
+
+  .ctl{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:16px 0 6px}
+  .btn{border:1px solid #cfd5cf;background:#fff;border-radius:11px;padding:9px 13px;font-size:13px;
+    font-family:inherit;cursor:pointer;color:#1f2c26}
+  .btn.on{border-color:#0f7a5a;color:#0b5c44;background:#eaf4ef;font-weight:600}
+  .meta{display:flex;justify-content:center;gap:14px;font-size:12px;color:#7b877f;margin-top:6px;flex-wrap:wrap}
+  .notes{margin:24px 0 0;border-top:1px solid #e2e7e3;padding-top:16px;font-size:13px;line-height:1.65;color:#3a473f}
+  .notes h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#7b877f;margin:0 0 8px}
+  .notes ol{margin:0;padding-left:20px} .notes li{margin:5px 0}
+  a.back{display:inline-block;margin-top:16px;font-size:13.5px;color:#0f7a5a;margin-right:14px}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Fridge display</h1>
+  <p class="lede">
+    2.9″ e-paper, 296 × 128, three colours, no touch. Three physical buttons.
+    Which screens it shows and how fast they rotate is set in
+    <a href="settings.html" style="color:#0f7a5a">Settings</a>, and it reads the same stored
+    items as the phone app.
+  </p>
+
+  <div class="stage">
+    <div class="device">
+      <div class="screenwrap">
+        <div class="screen" id="screen">
+
+          <!-- 1 · decision -->
+          <div class="scr on" data-scr="0">
+            <div class="hd"><span id="d-tonight">今晚吃这个 · <b id="d-time">12</b></span><span id="d-alt"></span></div>
+            <div class="body">
+              <div class="big two" id="d-dish">Shrimp<br><span class="plus">+ greens</span></div>
+              <div class="pix" id="d-pix"></div>
+            </div>
+            <div class="ft">
+              <span id="d-uses">uses shrimp 3d, greens 4d</span>
+              <span class="dots" data-dots="0"></span>
+            </div>
+          </div>
+
+          <!-- 2 · countdown -->
+          <div class="scr" data-scr="1">
+            <div class="hd"><span id="d-first">先吃这个</span><span id="d-more"></span></div>
+            <div class="body">
+              <div id="d-urgent-icon" style="color:var(--ink)"></div>
+              <div>
+                <div class="big" id="d-urgent-name">Shrimp</div>
+                <div style="display:flex;align-items:baseline;margin-top:2px">
+                  <span class="num red" id="d-urgent-days">3</span>
+                  <span class="unit red" id="d-urgent-unit">days left</span>
+                </div>
+              </div>
+            </div>
+            <div class="ft">
+              <span id="d-firstsub">in tonight's suggestion</span>
+              <span class="dots" data-dots="1"></span>
+            </div>
+          </div>
+
+          <!-- 3 · glance -->
+          <div class="scr" data-scr="2">
+            <div class="hd"><span id="d-in">冰箱里</span><span id="d-count">0 items</span></div>
+            <div class="body" style="align-items:flex-start;flex-direction:column;gap:0;justify-content:center">
+              <div class="big" id="d-glance">all good this week</div>
+              <div class="bars" id="d-bars"></div>
+              <div class="tick" id="d-urgent-list"></div>
+            </div>
+            <div class="ft">
+              <span id="d-detail">details &amp; recipes → app</span>
+              <span class="dots" data-dots="2"></span>
+            </div>
+          </div>
+
+          <!-- flash confirmation -->
+          <div class="flash" id="flash"><div><b id="flash-b">Logged</b><span id="flash-s">see you at dinner</span></div></div>
+
+        </div>
+      </div>
+
+      <div class="keys">
+        <button class="key" id="k-next"><span>›</span>Next</button>
+        <button class="key ok" id="k-take"><span>✓</span>Cook this</button>
+        <button class="key no" id="k-skip"><span>✕</span>Not this</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ctl">
+    <button class="btn" id="zoom">Zoom 2×</button>
+    <button class="btn" id="seed">Load demo fridge</button>
+  </div>
+  <div class="meta">
+    <span id="stat">screen 1</span>
+    <span id="rotinfo">rotation: —</span>
+    <span id="tally">taken — · skipped —</span>
+  </div>
+
+  <div class="notes">
+    <h2>How this maps to hardware</h2>
+    <ol>
+      <li><b>Screens and order are user settings</b> (Settings → Screens &amp; order), stored on the device.
+          Untick a screen and the panel stops showing it; the rotation interval is a setting too.</li>
+      <li><b>Three buttons, fixed:</b> next screen · “I'll cook this” · “not this one”.
+          The last two write to a log — that is the cheapest evidence in the project: does anyone
+          actually take the suggestion.</li>
+      <li><b>Pictograms, not illustrations.</b> One line drawing per food (21 foods, 16 drawings,
+          several share one). A bespoke drawing per dish would be ~18 more illustrations for no extra
+          decision value; a dish shows the drawings of its two ingredients instead.</li>
+      <li><b>Same database as the app.</b> <code>data.js</code> holds shelf lives and dishes;
+          both surfaces read it, so the panel can never suggest something the app does not know.</li>
+    </ol>
+    <a class="back" href="index.html">← phone app</a>
+    <a class="back" href="settings.html">settings →</a>
+  </div>
+</div>
+
+<script src="data.js?v=20261029-5"></script>
+<script src="icons.js?v=20261029-5"></script>
+<script src="sync.js"></script>
+<script src="logic.js?v=20261029-5"></script>
+<script src="i18n.js?v=20261029-6"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const L = (zh, en) => (window.I18N && I18N.getLang() === "en") ? en : zh;
+const rname = r => (window.I18N ? I18N.recipeName(r) : r.name);
+const fname = id => (window.I18N ? I18N.foodName(id) : (FD.byId[id]||{}).cn || id);
+const S = FD.settings();
+
+const DEMO = [
+  {id:"a", cat:"tofu",     name:"Tofu",             tag:"protein", daysLeft:2},
+  {id:"b", cat:"shrimp",   name:"Shrimp",           tag:"protein", daysLeft:1},
+  {id:"c", cat:"greens",   name:"Leafy greens",     tag:"greens",  daysLeft:2},
+  {id:"d", cat:"onion",    name:"Onion",            tag:"veg",     daysLeft:14},
+  {id:"e", cat:"dumpling", name:"Frozen dumplings", tag:"carb",    daysLeft:30},
+  {id:"f", cat:"egg",      name:"Eggs",             tag:"protein", daysLeft:9}
+];
+
+function currentItems(){
+  const stored = FD.items();
+  return Array.isArray(stored) && stored.length ? stored : DEMO;
+}
+let items = currentItems();
+let altIndex = 0;                    // how many times "not this" was pressed this session
+
+function paintDots(){
+  document.querySelectorAll("[data-dots]").forEach(el=>{
+    const active = +el.dataset.dots;
+    el.innerHTML = [0,1,2].map(i=>`<i class="${i===active?"on":""}"></i>`).join("");
+  });
+}
+
+function twoLines(name){
+  const plus = name.split(/\s+\+\s+/);
+  if (plus.length === 2) return `${plus[0]}<br><span class="plus">+ ${plus[1]}</span>`;
+  const w = name.search(/\s+with\s+/i);
+  if (w > 0) return `${name.slice(0,w)}<br><span class="plus">+ ${name.slice(w+6)}</span>`;
+  return name;
+}
+
+let ranked = [];
+
+function paint(){
+  ranked = FD.decide(items, S).filter(r => r.status !== "blocked");
+  const urg = FD.urgent(items, 3);
+
+  /* 1 — decision */
+  if (ranked.length) {
+    const pick = ranked[Math.min(altIndex, ranked.length - 1)];
+    $("#d-dish").innerHTML = twoLines(rname(pick.recipe));
+    $("#d-time").textContent = pick.recipe.minutes + L(" 分钟", " min") +
+      (pick.status === "shop1" ? L(" · 差1样", " · 1 short") : "");
+    $("#d-tonight").firstChild.textContent = L("今晚吃这个 · ", "Tonight · ");
+    $("#d-first").textContent = L("先吃这个", "Use first");
+    $("#d-in").textContent = L("冰箱里", "In the fridge");
+    $("#d-firstsub").textContent = L("今晚的推荐会用到它", "it is in tonight's suggestion");
+    $("#d-detail").textContent = L("详情 / 菜谱 → app", "details / recipes → app");
+    $("#d-uses").innerHTML = "uses " + pick.used
+      .map(u => `${fname(u.cat)} <b>${FD.daysLeftOf(u)}${L(" 天", " d")}</b>`)
+      .join(L("、", ", "));
+    $("#d-pix").innerHTML = window.FD_ICON(pick.used[0].cat, 38);
+    $("#d-alt").innerHTML = altIndex ? `<b>alt ${altIndex+1}</b>` : "";
+  } else {
+    $("#d-dish").innerHTML = "Add something<br><span class=\"plus\">to the app</span>";
+    $("#d-time").textContent = "—";
+    $("#d-uses").textContent = "no combination possible yet";
+    $("#d-pix").innerHTML = "";
+  }
+
+  /* 2 — countdown */
+  const u0 = urg[0];
+  if (u0) {
+    const d0 = FD.daysLeftOf(u0);
+    $("#d-urgent-name").textContent = fname(u0.cat);
+    $("#d-urgent-days").textContent = d0 <= 0 ? "0" : String(d0);
+    $("#d-urgent-unit").textContent = d0 <= 0 ? L("今天要吃", "use today") : L("天后过期", "days left");
+    $("#d-urgent-icon").innerHTML = window.FD_ICON(u0.cat, 38);
+    const soonCount = items.filter(i => FD.daysLeftOf(i) <= 2).length;
+    $("#d-more").innerHTML = soonCount > 1 ? `<b>+${soonCount-1} more</b>` : "";
+  }
+
+  /* 3 — glance */
+  const soon = items.filter(i => FD.daysLeftOf(i) <= 2).length;
+  $("#d-count").textContent = items.length + " items";
+  $("#d-glance").textContent = soon ? L(`${soon} 样要赶紧吃`, `${soon} need using soon`) : L("这周都还好", "all good this week");
+  $("#d-bars").innerHTML = items.slice().sort((a,b)=>FD.daysLeftOf(a)-FD.daysLeftOf(b)).slice(0,12)
+    .map(i => { const d = FD.daysLeftOf(i);
+                return `<span class="${d<=0?"r":(d<=2?"k":"")}"></span>`; }).join("");
+  $("#d-urgent-list").innerHTML = items.slice().sort((a,b)=>FD.daysLeftOf(a)-FD.daysLeftOf(b)).slice(0,3)
+    .map(i => `${fname(i.cat)} <b>${FD.daysLeftOf(i)}${L(" 天", " d")}</b>`).join(" · ");
+
+  paintDots();
+  paintTally();
+}
+
+function paintTally(){
+  const st = FD.stats();
+  $("#tally").textContent = `taken ${st.taken} · skipped ${st.skipped}`;
+}
+
+/* ---------- screens & rotation (settings-driven) ---------- */
+const order = (S.screens && S.screens.length) ? S.screens : [0,1,2];
+let pos = 0, timer = null;
+
+function showByIndex(screenIdx){
+  document.querySelectorAll(".scr").forEach(s => s.classList.toggle("on", +s.dataset.scr === screenIdx));
+  $("#stat").textContent = `screen ${screenIdx+1}`;
+}
+function nextScreen(){
+  pos = (pos + 1) % order.length;
+  showByIndex(order[pos]);
+  restart();
+}
+function restart(){
+  clearInterval(timer);
+  if (S.auto && S.rotMs > 0) timer = setInterval(nextScreen, S.rotMs);
+  $("#rotinfo").textContent = (S.auto && S.rotMs > 0)
+    ? `rotation: every ${Math.round(S.rotMs/1000)}s` : "rotation: button only";
+}
+function flash(big, small){
+  $("#flash-b").textContent = big;
+  $("#flash-s").textContent = small || "";
+  $("#flash").classList.add("on");
+  setTimeout(()=>$("#flash").classList.remove("on"), 1400);
+}
+
+/* ---------- the three buttons ---------- */
+$("#k-next").addEventListener("click", nextScreen);
+$("#k-take").addEventListener("click", ()=>{
+  const pick = ranked[Math.min(altIndex, ranked.length-1)];
+  if(!pick){ flash("Nothing to cook", "add food first"); return; }
+  FD.log("take", pick.recipe.id);
+  flash("记下了", pick.recipe.name);
+  paintTally();
+});
+$("#k-skip").addEventListener("click", ()=>{
+  const pick = ranked[Math.min(altIndex, ranked.length-1)];
+  if(pick) FD.log("skip", pick.recipe.id);
+  if(altIndex < ranked.length - 1){ altIndex++; }
+  paint();
+  pos = order.indexOf(0) >= 0 ? order.indexOf(0) : 0;
+  showByIndex(0);
+  restart();
+});
+
+/* ---------- misc ---------- */
+const ZOOMS = [1, 2, 3];
+let zi = 1;
+function applyZoom(){
+  const z = ZOOMS[zi];
+  $("#screen").style.transform = `scale(${z})`;
+  const wrap = document.querySelector(".screenwrap");
+  wrap.style.width  = (296 * z + 4) + "px";
+  wrap.style.height = (128 * z + 4) + "px";
+  $("#zoom").textContent = "Zoom " + z + "×";
+}
+$("#zoom").addEventListener("click", ()=>{ zi = (zi+1) % ZOOMS.length; applyZoom(); });
+$("#seed").addEventListener("click", ()=>{
+  FD.saveItems(DEMO.map(d => Object.assign({}, d, {
+    life: d.daysLeft, addedAt: FD.localDate()
+  })));
+  items = currentItems(); altIndex = 0; paint(); flash("Demo fridge", "loaded");
+});
+
+/* settings changed in another tab -> follow */
+window.addEventListener("storage", e => {
+  if(e.key === FD.LS_SETTINGS){ location.reload(); }
+  if(e.key === FD.LS_ITEMS){ items = currentItems(); altIndex = 0; paint(); }
+});
+
+paint(); showByIndex(order[0]); applyZoom(); restart();
+</script>
+</body>
+</html>

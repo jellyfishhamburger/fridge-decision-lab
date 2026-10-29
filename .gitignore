@@ -1,0 +1,20 @@
+# training workspace — never ship this
+training/.venv/
+training/data/
+training/*.log
+training/sources.csv
+
+# model training artefacts (only the exported tflite + labels are served)
+models/*.keras
+models/*.h5
+
+# scratch
+.testimg/
+.probe.html
+*.tmp
+__pycache__/
+.DS_Store
+Thumbs.db
+.taste-skill/
+__pycache__/
+*.pyc
