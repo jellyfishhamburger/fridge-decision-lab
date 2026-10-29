@@ -216,8 +216,17 @@ h1,h2{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-weight:400;lett
 .rcard .cook:disabled{opacity:.5;cursor:not-allowed}
 .rcard.note{animation:none;text-align:center;color:var(--ink-2);font-size:13.5px}
 
-/* ---------- 飞进锅里的那一下 ---------- */
-.flyer{position:fixed;z-index:99;pointer-events:none;width:44px;height:44px;will-change:transform}
+/* ---------- 拖拽 / 飞进锅里的那一下 ---------- */
+.flyer{position:fixed;z-index:99;pointer-events:none;width:54px;height:54px;will-change:transform}
+.drag-ghost{display:flex;align-items:center;justify-content:center;
+  filter:drop-shadow(0 12px 14px rgba(51,48,42,.3));transform:scale(1.12)}
+.drag-ghost .art{width:54px;height:54px}
+body.is-dragging{cursor:grabbing;user-select:none;-webkit-user-select:none}
+body.is-dragging .tile{transition:border-color .2s,background .2s}
+.tile.dragging{opacity:.45}
+/* 锅：可放置时亮一圈，指针/手指在上方时更亮 */
+.pot.can-drop{background:var(--butter-bg);box-shadow:0 0 0 3px rgba(242,193,78,.35) inset}
+.pot.over{background:#F8E4BC;box-shadow:0 0 0 4px rgba(242,193,78,.85) inset;transform:scale(1.02)}
 
 /* ---------- toast ---------- */
 .toast{position:fixed;left:50%;bottom:calc(216px + env(safe-area-inset-bottom));transform:translate(-50%,10px);

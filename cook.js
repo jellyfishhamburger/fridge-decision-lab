@@ -165,7 +165,10 @@
       ${art(x.cat)}
       <span class="nm">${foodName(x.cat)}</span>
       <span class="qt">×${x.qty} · ${dayTxt}</span>`;
-    b.addEventListener("click", () => toggle(x.cat, b));
+    b.addEventListener("click", () => {
+      if (Date.now() - lastDragEnd < 400) return;      // 刚拖完，click 是残留事件，忽略
+      toggle(x.cat, b);
+    });
     attachDrag(b, x.cat);
     return b;
   }
@@ -212,8 +215,8 @@
     const flyer = document.createElement("div");
     flyer.className = "flyer";
     flyer.innerHTML = art(cat);
-    flyer.style.left = from.left + from.width / 2 - 22 + "px";
-    flyer.style.top = from.top + from.height / 2 - 22 + "px";
+    flyer.style.left = from.left + from.width / 2 - 27 + "px";
+    flyer.style.top = from.top + from.height / 2 - 27 + "px";
     document.body.appendChild(flyer);
     const dx = (pot.left + pot.width / 2) - (from.left + from.width / 2);
     const dy = (pot.top + pot.height / 2) - (from.top + from.height / 2);
@@ -232,44 +235,95 @@
     pot.classList.add("bump");
   }
 
-  /* ---------- 拖拽（桌面友好；手机点一下就够了） ---------- */
+  /* ---------- 拖拽 ----------
+     鼠标：移动 10px 即视为拖拽。
+     触摸：按住 170ms 再移动才拖（避免和「滚动页面」抢手势），松手即取消。
+     拖完到锅里 → 选中；拖到别处 → 什么都不变（不会误选）。
+     拖拽结束后的那次 click 会被 lastDragEnd 吃掉，所以不会出现
+     「放进去又立刻被取消」的双触发。 */
+  let lastDragEnd = 0;
   function attachDrag(el, cat) {
-    let ghost = null, startX = 0, startY = 0, moved = false;
+    const HOLD_MS = 170;      // 触摸：按住多久才开始算拖拽
+    const MOVE_PX = 10;       // 移动多少像素算拖拽
+    let pid = null, sx = 0, sy = 0, ghost = null, dragging = false, holdTimer = null, isTouch = false;
+
+    const potEl = () => document.getElementById("pot");
+    const overPot = (x, y) => {
+      const r = potEl().getBoundingClientRect();
+      const pad = 18;                                   // 锅的判定范围比可视区大一圈，手指抬起不会差几像素就落空
+      return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
+    };
+
+    function makeGhost(x, y) {
+      const g = document.createElement("div");
+      g.className = "flyer drag-ghost";
+      g.innerHTML = art(cat);
+      document.body.appendChild(g);
+      moveGhost(g, x, y);
+      return g;
+    }
+    function moveGhost(g, x, y) {
+      g.style.left = (x - 27) + "px";
+      g.style.top = (y - 27) + "px";
+    }
+
+    function startDrag(x, y) {
+      if (dragging) return;
+      dragging = true;
+      el.classList.add("dragging");
+      document.body.classList.add("is-dragging");
+      ghost = makeGhost(x, y);
+      potEl().classList.add("can-drop");
+      if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+    }
+
+    function finish(x, y, cancelled) {
+      clearTimeout(holdTimer); holdTimer = null;
+      potEl().classList.remove("can-drop", "over");
+      document.body.classList.remove("is-dragging");
+      if (ghost) { ghost.remove(); ghost = null; }
+      el.classList.remove("dragging");
+      if (dragging) {
+        lastDragEnd = Date.now();
+        if (!cancelled && overPot(x, y) && !sel.has(cat)) { toggle(cat, el, true); bump(); }
+      }
+      dragging = false;
+      pid = null;
+    }
+
     el.addEventListener("pointerdown", e => {
-      if (e.pointerType === "touch") return;      // 触摸交给 click，避免误触
-      startX = e.clientX; startY = e.clientY; moved = false;
-      el.setPointerCapture(e.pointerId);
+      if (e.button != null && e.button > 0) return;      // 只响应主键
+      pid = e.pointerId;
+      isTouch = e.pointerType === "touch";
+      sx = e.clientX; sy = e.clientY;
+      try { el.setPointerCapture(pid); } catch (err) {}
+      if (isTouch) {                                     // 触摸：先按住，拖不动页面
+        holdTimer = setTimeout(() => { if (pid === e.pointerId) startDrag(sx, sy); }, HOLD_MS);
+      }
     });
+
     el.addEventListener("pointermove", e => {
-      if (!el.hasPointerCapture || !el.hasPointerCapture(e.pointerId)) return;
-      const d = Math.hypot(e.clientX - startX, e.clientY - startY);
-      if (!moved && d < 8) return;
-      if (!moved) {
-        moved = true;
-        ghost = document.createElement("div");
-        ghost.className = "flyer";
-        ghost.innerHTML = art(cat);
-        document.body.appendChild(ghost);
-        el.classList.add("dragging");
+      if (e.pointerId !== pid) return;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!dragging) {
+        if (Math.hypot(dx, dy) < MOVE_PX) return;
+        if (isTouch) { clearTimeout(holdTimer); holdTimer = null; pid = null; return; } // 未按住就滑 → 让页面滚
+        startDrag(sx, sy);
       }
-      ghost.style.transform = `translate(${e.clientX - 22}px,${e.clientY - 22}px)`;
-      const pot = $("#pot");
-      const r = pot.getBoundingClientRect();
-      pot.classList.toggle("over", e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom);
-    });
+      e.preventDefault();
+      moveGhost(ghost, e.clientX, e.clientY);
+      potEl().classList.toggle("over", overPot(e.clientX, e.clientY));
+    }, { passive: false });
+
     el.addEventListener("pointerup", e => {
-      if (ghost) {
-        ghost.remove(); el.classList.remove("dragging");
-        const pot = $("#pot"), r = pot.getBoundingClientRect();
-        const hit = e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom;
-        pot.classList.remove("over");
-        if (hit && !sel.has(cat)) { toggle(cat, el, true); bump(); }
-        ghost = null;
-      }
+      if (e.pointerId !== pid) return;
+      finish(e.clientX, e.clientY, false);
     });
-    el.addEventListener("pointercancel", () => {
-      if (ghost) { ghost.remove(); el.classList.remove("dragging"); ghost = null; $("#pot").classList.remove("over"); }
+    el.addEventListener("pointercancel", e => {
+      if (e.pointerId !== pid) return;
+      finish(e.clientX, e.clientY, true);
     });
+    // 触摸时若提前松手但还没进入拖拽 → 当作点击（click 事件照常触发）
   }
 
   /* ---------- 推荐 ---------- */

@@ -12,6 +12,7 @@
   const STR = {
     zh: {
       "nav.fridge": "冰箱", "nav.discover": "推荐", "nav.build": "自己选", "nav.settings": "设置",
+      "nav.cook": "下锅", "nav.cookHint": "把食材拖进锅里看能做什么",
       "title.fridge": "冰箱里有什么", "title.discover": "今晚吃什么", "title.build": "自己做主",
 
       "fridge.lede": "右边数字＝还能放几天，越红越要先吃。数据存在这台设备里。",
@@ -115,6 +116,7 @@
 
     en: {
       "nav.fridge": "Fridge", "nav.discover": "Tonight", "nav.build": "Build", "nav.settings": "Settings",
+      "nav.cook": "Pot", "nav.cookHint": "Drag ingredients into the pot",
       "title.fridge": "What's in your fridge", "title.discover": "What can I cook", "title.build": "You choose",
 
       "fridge.lede": "The number is how many days are left. The redder, the sooner it must be eaten.",
